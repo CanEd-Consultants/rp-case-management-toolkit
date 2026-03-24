@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - RP Immigration Consulting</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #1a2a4a;
+      --primary-light: #2d6ab4;
+      --accent: #e8b931;
+      --bg: #f0f2f5;
+      --card: #ffffff;
+      --text: #1a1a2e;
+      --text-secondary: #6b7280;
+      --border: #e5e7eb;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --info: #2563eb;
+      --sidebar-width: 250px;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: var(--sidebar-width);
+      background: var(--primary);
+      color: white;
+      padding: 24px 0;
+      z-index: 100;
+      overflow-y: auto;
+    }
+    .sidebar-brand {
+      padding: 0 20px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 16px;
+    }
+    .sidebar-brand h2 {
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+    .sidebar-brand .sub { font-size: 11px; opacity: 0.6; margin-top: 2px; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+      gap: 10px;
+    }
+    .nav-item:hover, .nav-item.active {
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+    .nav-item .icon { font-size: 18px; width: 24px; text-align: center; }
+    .nav-section {
+      padding: 16px 20px 6px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      opacity: 0.4;
+      font-weight: 600;
+    }
+    .user-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.15);
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .user-info .logout { color: rgba(255,255,255,0.5); cursor: pointer; font-size: 12px; }
+    .user-info .logout:hover { color: white; }
+
+    /* Main Content */
+    .main {
+      margin-left: var(--sidebar-width);
+      padding: 28px 32px;
+      min-height: 100vh;
+    }
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .page-header h1 { font-size: 24px; font-weight: 700; color: var(--primary); }
+
+    /* Stats Row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .stat-card .label { font-size: 12px; color: var(--text-secondary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-card .value { font-size: 32px; font-weight: 700; color: var(--primary); margin-top: 4px; }
+    .stat-card .detail { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+    .stat-card.success .value { color: var(--success); }
+    .stat-card.warning .value { color: var(--warning); }
+    .stat-card.danger .value { color: var(--danger); }
+
+    /* Cards / Tables */
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card-header h3 { font-size: 15px; font-weight: 600; }
+    .card-body { padding: 20px; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+    .btn-primary { background: var(--primary-light); color: white; }
+    .btn-primary:hover { background: var(--primary); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-warning { background: var(--warning); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
+    .btn-outline:hover { border-color: var(--primary-light); color: var(--primary-light); }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn-xs { padding: 3px 8px; font-size: 11px; border-radius: 6px; }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); font-weight: 600; background: #f8f9fa; }
+    td { padding: 12px 16px; font-size: 13px; border-top: 1px solid var(--border); vertical-align: middle; }
+    tr:hover td { background: #f8faff; }
+
+    /* Status badges */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-uploaded { background: #dbeafe; color: #1e40af; }
+    .badge-accepted { background: #d1fae5; color: #065f46; }
+    .badge-rejected { background: #fee2e2; color: #991b1b; }
+    .badge-active { background: #dbeafe; color: #1e40af; }
+    .badge-documents_complete { background: #d1fae5; color: #065f46; }
+    .badge-completed { background: #d1fae5; color: #065f46; }
+    .badge-on_hold { background: #fef3c7; color: #92400e; }
+    .badge-under_review { background: #ede9fe; color: #5b21b6; }
+
+    /* Progress bar */
+    .progress-bar {
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 3px;
+      overflow: hidden;
+      width: 100%;
+    }
+    .progress-bar .fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s;
+    }
+    .progress-bar .fill.green { background: var(--success); }
+    .progress-bar .fill.yellow { background: var(--warning); }
+    .progress-bar .fill.red { background: var(--danger); }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 700px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-header h2 { font-size: 18px; }
+    .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary); }
+    .modal-body { padding: 24px; }
+    .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+
+    /* Form */
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      font-family: inherit;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary-light); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* Activity log */
+    .activity-item {
+      display: flex;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 13px;
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+    .activity-time { color: var(--text-secondary); font-size: 11px; margin-top: 2px; }
+
+    /* Client link */
+    .client-link-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f0f7ff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+    .client-link-box input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 13px;
+      color: var(--primary-light);
+      outline: none;
+    }
+    .client-link-box .copy-btn {
+      padding: 4px 12px;
+      font-size: 12px;
+      background: var(--primary-light);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* Checklist in case detail */
+    .doc-list-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .doc-list-item:last-child { border-bottom: none; }
+    .doc-info { flex: 1; }
+    .doc-info .doc-name { font-size: 14px; font-weight: 500; }
+    .doc-info .doc-meta { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+    .doc-info .doc-note { font-size: 12px; color: var(--danger); margin-top: 4px; font-style: italic; }
+    .doc-info .client-note { font-size: 12px; color: var(--info); margin-top: 2px; }
+    .doc-actions { display: flex; gap: 4px; }
+    .required-mark { color: var(--danger); font-size: 10px; font-weight: 700; }
+
+    /* Category grouping */
+    .category-header {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      padding: 16px 0 8px;
+      border-bottom: 2px solid var(--border);
+      margin-top: 8px;
+    }
+
+    /* Search / filter */
+    .search-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .search-bar input {
+      flex: 1;
+      padding: 8px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+    }
+    .search-bar select {
+      padding: 8px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      background: white;
+    }
+
+    /* Views */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--primary);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      z-index: 2000;
+      display: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .toast.success { background: var(--success); }
+    .toast.error { background: var(--danger); }
+    .toast.show { display: block; }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 60px; }
+      .sidebar-brand h2, .sidebar-brand .sub, .nav-item span, .nav-section, .user-info { display: none; }
+      .nav-item { justify-content: center; padding: 14px; }
+      .main { margin-left: 60px; padding: 16px; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <h2>RP Immigration Consulting</h2>
+      <div class="sub">Case Management System</div>
+    </div>
+    <div class="nav-item active" onclick="showView('dashboard')">
+      <span class="icon">📊</span><span>Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="showView('cases')">
+      <span class="icon">📁</span><span>All Cases</span>
+    </div>
+    <div class="nav-item" onclick="openNewCaseModal()">
+      <span class="icon">➕</span><span>New Case (KT Form)</span>
+    </div>
+    <div class="nav-section">Administration</div>
+    <div class="nav-item" onclick="showView('team')">
+      <span class="icon">👥</span><span>Team Members</span>
+    </div>
+    <div class="user-info">
+      <span id="currentUser">Loading...</span>
+      <span class="logout" onclick="logout()">Sign out</span>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+
+    <!-- Dashboard View -->
+    <div id="view-dashboard" class="view active">
+      <div class="page-header">
+        <h1>Dashboard</h1>
+        <button class="btn btn-primary" onclick="openNewCaseModal()">➕ New Case</button>
+      </div>
+      <div id="statsRow" class="stats-row"></div>
+      <div class="card">
+        <div class="card-header"><h3>Recent Activity</h3></div>
+        <div class="card-body" id="recentActivity"></div>
+      </div>
+    </div>
+
+    <!-- Cases View -->
+    <div id="view-cases" class="view">
+      <div class="page-header">
+        <h1>All Cases</h1>
+        <button class="btn btn-primary" onclick="openNewCaseModal()">➕ New Case</button>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="searchCases" placeholder="Search by client name..." oninput="renderCases()">
+        <select id="filterStatus" onchange="renderCases()">
+          <option value="">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="documents_complete">Docs Complete</option>
+          <option value="on_hold">On Hold</option>
+          <option value="completed">Completed</option>
+        </select>
+      </div>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Case Type</th>
+              <th>Assigned To</th>
+              <th>Status</th>
+              <th>Progress</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="casesTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Case Detail View -->
+    <div id="view-case-detail" class="view">
+      <div class="page-header">
+        <div>
+          <button class="btn btn-outline btn-sm" onclick="showView('cases')" style="margin-bottom:8px;">← Back to All Cases</button>
+          <h1 id="caseDetailTitle">Case Detail</h1>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline btn-sm" onclick="editCurrentCase()">Edit Case</button>
+        </div>
+      </div>
+      <div id="caseDetailContent"></div>
+    </div>
+
+    <!-- Team View -->
+    <div id="view-team" class="view">
+      <div class="page-header">
+        <h1>Team Members</h1>
+        <button class="btn btn-primary" onclick="openAddUserModal()">➕ Add Member</button>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Actions</th></tr></thead>
+          <tbody id="teamTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- New Case Modal (KT Form) -->
+  <div class="modal-overlay" id="newCaseModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>New Case — Knowledge Transfer Form</h2>
+        <button class="modal-close" onclick="closeModal('newCaseModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="ktForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Client Full Name *</label>
+              <input type="text" id="kt_client_name" required>
+            </div>
+            <div class="form-group">
+              <label>Case Type *</label>
+              <select id="kt_case_type" required></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="kt_email">
+            </div>
+            <div class="form-group">
+              <label>Phone</label>
+              <input type="text" id="kt_phone">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Assigned To</label>
+              <select id="kt_assigned_to"><option value="">Unassigned</option></select>
+            </div>
+            <div class="form-group">
+              <label>Deadline</label>
+              <input type="date" id="kt_deadline">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Service Details</label>
+            <textarea id="kt_service_details" rows="2" placeholder="What service was sold? Any special arrangements?"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Notes for Filing Team</label>
+            <textarea id="kt_notes" rows="3" placeholder="Important details, special circumstances, client preferences..."></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('newCaseModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitKTForm()">Create Case</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Document Modal -->
+  <div class="modal-overlay" id="addDocModal">
+    <div class="modal" style="max-width:500px;">
+      <div class="modal-header">
+        <h2>Add Document to Checklist</h2>
+        <button class="modal-close" onclick="closeModal('addDocModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Document Name *</label>
+          <input type="text" id="addDoc_name" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" id="addDoc_category" value="General">
+          </div>
+          <div class="form-group">
+            <label>Required?</label>
+            <select id="addDoc_required">
+              <option value="1">Yes — Required</option>
+              <option value="0">No — Optional</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="addDoc_desc" placeholder="Any notes about what's needed">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('addDocModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitAddDoc()">Add Document</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Document Status Modal -->
+  <div class="modal-overlay" id="docStatusModal">
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-header">
+        <h2>Update Document Status</h2>
+        <button class="modal-close" onclick="closeModal('docStatusModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Document: <strong id="docStatusName"></strong></label>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="docStatus_status">
+            <option value="pending">Pending</option>
+            <option value="uploaded">Uploaded / Submitted by Client</option>
+            <option value="under_review">Under Review</option>
+            <option value="accepted">Accepted ✓</option>
+            <option value="rejected">Rejected — Needs Resubmission</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Note (visible to client if rejected)</label>
+          <textarea id="docStatus_note" rows="2" placeholder="e.g. Photo is blurry, please resend a clearer copy"></textarea>
+        </div>
+        <div class="form-group">
+          <label>File Reference (Google Drive link, etc.)</label>
+          <input type="text" id="docStatus_ref" placeholder="https://drive.google.com/...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('docStatusModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitDocStatus()">Update</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add User Modal -->
+  <div class="modal-overlay" id="addUserModal">
+    <div class="modal" style="max-width:450px;">
+      <div class="modal-header">
+        <h2>Add Team Member</h2>
+        <button class="modal-close" onclick="closeModal('addUserModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" id="newUser_name" required>
+        </div>
+        <div class="form-group">
+          <label>Username *</label>
+          <input type="text" id="newUser_username" required>
+        </div>
+        <div class="form-group">
+          <label>Password *</label>
+          <input type="password" id="newUser_password" required>
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <select id="newUser_role">
+            <option value="filing">Filing Team</option>
+            <option value="sales">Sales</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('addUserModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitAddUser()">Add Member</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // ==================== STATE ====================
+    let currentUser = null;
+    let allCases = [];
+    let allUsers = [];
+    let caseTypes = [];
+    let currentCaseId = null;
+
+    // ==================== INIT ====================
+    async function init() {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (!res.ok) { window.location.href = '/staff'; return; }
+        const data = await res.json();
+        currentUser = data.user;
+        document.getElementById('currentUser').textContent = currentUser.full_name;
+        await Promise.all([loadCaseTypes(), loadUsers()]);
+        await loadDashboard();
+        await loadCases();
+      } catch (e) {
+        window.location.href = '/staff';
+      }
+    }
+
+    // ==================== DATA LOADING ====================
+    async function loadCaseTypes() {
+      const res = await fetch('/api/case-types');
+      caseTypes = await res.json();
+      const select = document.getElementById('kt_case_type');
+      select.innerHTML = '<option value="">Select case type...</option>' + caseTypes.map(ct => `<option value="${ct.id}">${ct.name}</option>`).join('');
+    }
+
+    async function loadUsers() {
+      const res = await fetch('/api/users');
+      allUsers = await res.json();
+      const select = document.getElementById('kt_assigned_to');
+      select.innerHTML = '<option value="">Unassigned</option>' + allUsers.map(u => `<option value="${u.id}">${u.full_name} (${u.role})</option>`).join('');
+    }
+
+    async function loadDashboard() {
+      const res = await fetch('/api/stats');
+      const stats = await res.json();
+      document.getElementById('statsRow').innerHTML = `
+        <div class="stat-card"><div class="label">Total Cases</div><div class="value">${stats.cases.total}</div></div>
+        <div class="stat-card"><div class="label">Active Cases</div><div class="value">${stats.cases.active}</div><div class="detail">Collecting documents</div></div>
+        <div class="stat-card success"><div class="label">Docs Complete</div><div class="value">${stats.cases.complete}</div><div class="detail">Ready for packaging</div></div>
+        <div class="stat-card warning"><div class="label">On Hold</div><div class="value">${stats.cases.on_hold}</div></div>
+        <div class="stat-card"><div class="label">Pending Documents</div><div class="value">${stats.documents.pending}</div><div class="detail">Across all cases</div></div>
+        <div class="stat-card warning"><div class="label">Awaiting Review</div><div class="value">${stats.documents.uploaded}</div><div class="detail">Submitted by clients</div></div>
+      `;
+      document.getElementById('recentActivity').innerHTML = stats.recentActivity.length === 0 ?
+        '<p style="color:var(--text-secondary);font-size:13px;">No activity yet. Create your first case to get started.</p>' :
+        stats.recentActivity.map(a => `
+          <div class="activity-item">
+            <div class="activity-dot"></div>
+            <div>
+              <div>${a.client_name ? `<strong>${a.client_name}</strong> — ` : ''}${a.details || a.action}</div>
+              <div class="activity-time">${a.performed_by} · ${formatDate(a.created_at)}</div>
+            </div>
+          </div>
+        `).join('');
+    }
+
+    async function loadCases() {
+      const res = await fetch('/api/cases');
+      allCases = await res.json();
+      renderCases();
+    }
+
+    function renderCases() {
+      const search = document.getElementById('searchCases')?.value?.toLowerCase() || '';
+      const status = document.getElementById('filterStatus')?.value || '';
+      let filtered = allCases;
+      if (search) filtered = filtered.filter(c => c.client_name.toLowerCase().includes(search));
+      if (status) filtered = filtered.filter(c => c.status === status);
+
+      document.getElementById('casesTableBody').innerHTML = filtered.length === 0 ?
+        '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:32px;">No cases found. Click "New Case" to create one.</td></tr>' :
+        filtered.map(c => {
+          const progress = c.total_docs > 0 ? Math.round((c.accepted_docs / c.total_docs) * 100) : 0;
+          const barColor = progress >= 100 ? 'green' : progress >= 50 ? 'yellow' : 'red';
+          return `<tr style="cursor:pointer" onclick="openCaseDetail(${c.id})">
+            <td><strong>${esc(c.client_name)}</strong><br><span style="font-size:11px;color:var(--text-secondary);">${c.client_email || ''}</span></td>
+            <td style="font-size:12px;">${esc(c.case_type_name)}</td>
+            <td>${c.assigned_to_name || '<span style="color:var(--text-secondary);">Unassigned</span>'}</td>
+            <td><span class="badge badge-${c.status}">${formatStatus(c.status)}</span></td>
+            <td style="min-width:120px;">
+              <div class="progress-bar"><div class="fill ${barColor}" style="width:${progress}%"></div></div>
+              <span style="font-size:11px;color:var(--text-secondary);">${c.accepted_docs}/${c.total_docs} accepted</span>
+            </td>
+            <td style="font-size:12px;">${formatDate(c.created_at)}</td>
+            <td><button class="btn btn-outline btn-xs" onclick="event.stopPropagation();openCaseDetail(${c.id})">View</button></td>
+          </tr>`;
+        }).join('');
+    }
+
+    // ==================== CASE DETAIL ====================
+    async function openCaseDetail(id) {
+      currentCaseId = id;
+      const res = await fetch(`/api/cases/${id}`);
+      const c = await res.json();
+
+      document.getElementById('caseDetailTitle').textContent = c.client_name;
+      const progress = c.documents.length > 0 ? Math.round((c.documents.filter(d => d.status === 'accepted').length / c.documents.length) * 100) : 0;
+      const clientLink = `${window.location.origin}/portal/${c.client_token}`;
+
+      // Group docs by category
+      const categories = {};
+      c.documents.forEach(d => {
+        if (!categories[d.category]) categories[d.category] = [];
+        categories[d.category].push(d);
+      });
+
+      document.getElementById('caseDetailContent').innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+          <div class="card">
+            <div class="card-header"><h3>Case Information</h3></div>
+            <div class="card-body">
+              <table style="font-size:13px;">
+                <tr><td style="border:0;padding:6px 12px 6px 0;font-weight:600;color:var(--text-secondary);width:120px;">Case Type</td><td style="border:0;padding:6px 0;">${esc(c.case_type_name)}</td></tr>
+                <tr><td style="border:0;padding:6px 12px 6px 0;font-weight:600;color:var(--text-secondary);">Status</td><td style="border:0;padding:6px 0;"><span class="badge badge-${c.status}">${formatStatus(c.status)}</span>
+                  <select onchange="updateCaseStatus(${c.id}, this.value)" style="margin-left:8px;padding:2px 6px;font-size:11px;border:1px solid var(--border);border-radius:4px;">
+                    <option value="">Change...</option>
+                    <option value="active">Active</option>
+                    <option value="on_hold">On Hold</option>
+                    <option value="documents_complete">Docs Complete</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </td></tr>
+                <tr><td style="border:0;padding:6px 12px 6px 0;font-weight:600;color:var(--text-secondary);">Email</td><td style="border:0;padding:6px 0;">${esc(c.client_email || '—')}</td></tr>
+                <tr><td style="border:0;padding:6px 12px 6px 0;font-weight:600;color:var(--text-secondary);">Phone</td><td style="border:0;padding:6px 0;">${esc(c.client_phone || '—')}</td></tr>
+                <tr><td style="border:0;padding:6px 12px 6px 0;font-weight:600;color:var(--text-secondary);">Assigned To</td><td style="border:0;padding:6px 0;">${esc(c.assigned_to_name || 'Unassigned')}</td></tr>
+                <tr><td style="border:0;padding:6px 12px 6px 0;font-weight:600;color:var(--text-secondary);">Deadline</td><td style="border:0;padding:6px 0;">${c.deadline || '—'}</td></tr>
+                <tr><td style="border:0;padding:6px 12px 6px 0;font-weight:600;color:var(--text-secondary);">Created</td><td style="border:0;padding:6px 0;">${formatDate(c.created_at)} by ${esc(c.created_by_name || '—')}</td></tr>
+              </table>
+              ${c.service_details ? `<div style="margin-top:12px;"><strong style="font-size:12px;color:var(--text-secondary);">Service Details:</strong><p style="font-size:13px;margin-top:4px;">${esc(c.service_details)}</p></div>` : ''}
+              ${c.notes ? `<div style="margin-top:12px;"><strong style="font-size:12px;color:var(--text-secondary);">Notes:</strong><p style="font-size:13px;margin-top:4px;">${esc(c.notes)}</p></div>` : ''}
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Client Portal Link</h3></div>
+            <div class="card-body">
+              <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">Share this link with the client so they can view their document checklist and track progress.</p>
+              <div class="client-link-box">
+                <input type="text" value="${clientLink}" readonly id="clientLinkInput_${c.id}">
+                <button class="copy-btn" onclick="copyClientLink('clientLinkInput_${c.id}')">Copy</button>
+              </div>
+              <div style="margin-top:16px;">
+                <div style="font-size:24px;font-weight:700;color:var(--primary);">${progress}%</div>
+                <div class="progress-bar" style="margin-top:6px;height:8px;"><div class="fill ${progress >= 100 ? 'green' : progress >= 50 ? 'yellow' : 'red'}" style="width:${progress}%"></div></div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:6px;">
+                  ${c.documents.filter(d=>d.status==='accepted').length} accepted ·
+                  ${c.documents.filter(d=>d.status==='uploaded').length} awaiting review ·
+                  ${c.documents.filter(d=>d.status==='rejected').length} rejected ·
+                  ${c.documents.filter(d=>d.status==='pending').length} pending
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Document Checklist (${c.documents.length} items)</h3>
+            <button class="btn btn-primary btn-sm" onclick="openAddDocModal()">➕ Add Document</button>
+          </div>
+          <div class="card-body">
+            ${Object.keys(categories).map(cat => `
+              <div class="category-header">${esc(cat)}</div>
+              ${categories[cat].map(d => `
+                <div class="doc-list-item">
+                  <div class="doc-info">
+                    <div class="doc-name">${esc(d.document_name)} ${d.is_required ? '<span class="required-mark">REQUIRED</span>' : ''}</div>
+                    <div class="doc-meta">
+                      <span class="badge badge-${d.status}">${formatStatus(d.status)}</span>
+                      ${d.submitted_at ? ` · Submitted: ${formatDate(d.submitted_at)}` : ''}
+                      ${d.reviewed_at ? ` · Reviewed: ${formatDate(d.reviewed_at)}` : ''}
+                      ${d.file_reference ? ` · <a href="${esc(d.file_reference)}" target="_blank" style="color:var(--primary-light);">View file ↗</a>` : ''}
+                    </div>
+                    ${d.status_note ? `<div class="doc-note">Staff note: ${esc(d.status_note)}</div>` : ''}
+                    ${d.client_note ? `<div class="client-note">Client note: ${esc(d.client_note)}</div>` : ''}
+                  </div>
+                  <div class="doc-actions">
+                    <button class="btn btn-outline btn-xs" onclick="openDocStatusModal(${d.id}, '${esc(d.document_name)}', '${d.status}', '${esc(d.status_note||'')}', '${esc(d.file_reference||'')}')">Update</button>
+                    <button class="btn btn-xs" style="color:var(--danger);background:none;" onclick="deleteDoc(${d.id})">✕</button>
+                  </div>
+                </div>
+              `).join('')}
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header"><h3>Activity Log</h3></div>
+          <div class="card-body">
+            ${(c.activity || []).map(a => `
+              <div class="activity-item">
+                <div class="activity-dot"></div>
+                <div>
+                  <div>${esc(a.details || a.action)}</div>
+                  <div class="activity-time">${a.performed_by} · ${formatDate(a.created_at)}</div>
+                </div>
+              </div>
+            `).join('') || '<p style="color:var(--text-secondary);font-size:13px;">No activity yet.</p>'}
+          </div>
+        </div>
+      `;
+
+      showView('case-detail');
+    }
+
+    // ==================== ACTIONS ====================
+    async function submitKTForm() {
+      const data = {
+        case_type_id: document.getElementById('kt_case_type').value,
+        client_name: document.getElementById('kt_client_name').value,
+        client_email: document.getElementById('kt_email').value,
+        client_phone: document.getElementById('kt_phone').value,
+        service_details: document.getElementById('kt_service_details').value,
+        notes: document.getElementById('kt_notes').value,
+        deadline: document.getElementById('kt_deadline').value,
+        assigned_to: document.getElementById('kt_assigned_to').value || null,
+      };
+      if (!data.client_name || !data.case_type_id) { toast('Please fill in client name and case type', 'error'); return; }
+      const res = await fetch('/api/cases', {
+        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      if (result.id) {
+        toast('Case created successfully!', 'success');
+        closeModal('newCaseModal');
+        document.getElementById('ktForm').reset();
+        await loadCases();
+        await loadDashboard();
+        openCaseDetail(result.id);
+      } else {
+        toast('Error creating case', 'error');
+      }
+    }
+
+    async function updateCaseStatus(id, status) {
+      if (!status) return;
+      await fetch(`/api/cases/${id}`, {
+        method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status })
+      });
+      toast('Status updated', 'success');
+      openCaseDetail(id);
+      loadCases();
+      loadDashboard();
+    }
+
+    function openDocStatusModal(docId, name, status, note, ref) {
+      document.getElementById('docStatusName').textContent = name;
+      document.getElementById('docStatus_status').value = status;
+      document.getElementById('docStatus_note').value = note;
+      document.getElementById('docStatus_ref').value = ref;
+      document.getElementById('docStatusModal').dataset.docId = docId;
+      openModal('docStatusModal');
+    }
+
+    async function submitDocStatus() {
+      const docId = document.getElementById('docStatusModal').dataset.docId;
+      const data = {
+        status: document.getElementById('docStatus_status').value,
+        status_note: document.getElementById('docStatus_note').value,
+        file_reference: document.getElementById('docStatus_ref').value,
+      };
+      await fetch(`/api/documents/${docId}`, {
+        method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
+      });
+      toast('Document updated', 'success');
+      closeModal('docStatusModal');
+      openCaseDetail(currentCaseId);
+      loadCases();
+      loadDashboard();
+    }
+
+    function openAddDocModal() {
+      document.getElementById('addDoc_name').value = '';
+      document.getElementById('addDoc_category').value = 'General';
+      document.getElementById('addDoc_required').value = '1';
+      document.getElementById('addDoc_desc').value = '';
+      openModal('addDocModal');
+    }
+
+    async function submitAddDoc() {
+      const data = {
+        document_name: document.getElementById('addDoc_name').value,
+        category: document.getElementById('addDoc_category').value,
+        is_required: parseInt(document.getElementById('addDoc_required').value),
+        description: document.getElementById('addDoc_desc').value,
+      };
+      if (!data.document_name) { toast('Please enter a document name', 'error'); return; }
+      await fetch(`/api/cases/${currentCaseId}/documents`, {
+        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
+      });
+      toast('Document added', 'success');
+      closeModal('addDocModal');
+      openCaseDetail(currentCaseId);
+    }
+
+    async function deleteDoc(docId) {
+      if (!confirm('Remove this document from the checklist?')) return;
+      await fetch(`/api/documents/${docId}`, { method: 'DELETE' });
+      toast('Document removed', 'success');
+      openCaseDetail(currentCaseId);
+    }
+
+    // Team management
+    async function loadTeam() {
+      await loadUsers();
+      document.getElementById('teamTableBody').innerHTML = allUsers.map(u => `
+        <tr>
+          <td>${esc(u.full_name)}</td>
+          <td>${esc(u.username)}</td>
+          <td><span class="badge badge-active">${u.role}</span></td>
+          <td>${u.role !== 'admin' ? `<button class="btn btn-xs btn-danger" onclick="deleteUser(${u.id})">Remove</button>` : ''}</td>
+        </tr>
+      `).join('');
+    }
+
+    function openAddUserModal() {
+      document.getElementById('newUser_name').value = '';
+      document.getElementById('newUser_username').value = '';
+      document.getElementById('newUser_password').value = '';
+      openModal('addUserModal');
+    }
+
+    async function submitAddUser() {
+      const data = {
+        full_name: document.getElementById('newUser_name').value,
+        username: document.getElementById('newUser_username').value,
+        password: document.getElementById('newUser_password').value,
+        role: document.getElementById('newUser_role').value,
+      };
+      if (!data.full_name || !data.username || !data.password) { toast('Please fill all fields', 'error'); return; }
+      const res = await fetch('/api/users', {
+        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      if (result.id) {
+        toast('Team member added', 'success');
+        closeModal('addUserModal');
+        loadTeam();
+        loadUsers();
+      } else {
+        toast(result.error || 'Error adding user', 'error');
+      }
+    }
+
+    async function deleteUser(id) {
+      if (!confirm('Remove this team member?')) return;
+      await fetch(`/api/users/${id}`, { method: 'DELETE' });
+      toast('Member removed', 'success');
+      loadTeam();
+      loadUsers();
+    }
+
+    // ==================== UI HELPERS ====================
+    function showView(name) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(`view-${name}`).classList.add('active');
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      if (name === 'dashboard') {
+        document.querySelectorAll('.nav-item')[0].classList.add('active');
+        loadDashboard();
+      }
+      if (name === 'cases') {
+        document.querySelectorAll('.nav-item')[1].classList.add('active');
+        loadCases();
+      }
+      if (name === 'team') {
+        document.querySelectorAll('.nav-item')[4].classList.add('active');
+        loadTeam();
+      }
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    function openNewCaseModal() {
+      document.getElementById('ktForm').reset();
+      openModal('newCaseModal');
+    }
+
+    function copyClientLink(inputId) {
+      const input = document.getElementById(inputId);
+      input.select();
+      document.execCommand('copy');
+      toast('Link copied to clipboard!', 'success');
+    }
+
+    function toast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast show ${type}`;
+      setTimeout(() => t.className = 'toast', 3000);
+    }
+
+    function formatDate(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function formatStatus(s) {
+      return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function esc(s) {
+      if (!s) return '';
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    async function logout() {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.href = '/staff';
+    }
+
+    // Close modals on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('active');
+      });
+    });
+
+    init();
+  </script>
+</body>
+</html>

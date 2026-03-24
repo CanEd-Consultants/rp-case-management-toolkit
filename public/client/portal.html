@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Checklist - RP Immigration Consulting</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #1a2a4a;
+      --primary-light: #2d6ab4;
+      --accent: #e8b931;
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --text: #1a1a2e;
+      --text-secondary: #6b7280;
+      --border: #e5e7eb;
+      --success: #059669;
+      --success-light: #d1fae5;
+      --warning: #d97706;
+      --warning-light: #fef3c7;
+      --danger: #dc2626;
+      --danger-light: #fee2e2;
+      --info: #2563eb;
+      --info-light: #dbeafe;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: var(--primary);
+      color: white;
+      padding: 0;
+    }
+    .header-top {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px 20px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .brand-icon {
+      width: 48px;
+      height: 48px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    .brand h1 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .brand .sub {
+      font-size: 12px;
+      opacity: 0.7;
+      margin-top: 2px;
+    }
+    .welcome-box {
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .welcome-box h2 {
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+    .welcome-box .case-type {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+    .welcome-box .assigned {
+      font-size: 13px;
+      opacity: 0.6;
+      margin-top: 8px;
+    }
+
+    /* Progress Hero */
+    .progress-hero {
+      max-width: 900px;
+      margin: -20px auto 0;
+      padding: 0 20px;
+      position: relative;
+      z-index: 10;
+    }
+    .progress-card {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .progress-circle {
+      width: 80px;
+      height: 80px;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .progress-circle svg {
+      transform: rotate(-90deg);
+      width: 80px;
+      height: 80px;
+    }
+    .progress-circle .bg { stroke: #e5e7eb; }
+    .progress-circle .fill-ring { stroke: var(--success); transition: stroke-dashoffset 0.5s; }
+    .progress-circle .pct {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .progress-stats {
+      flex: 1;
+    }
+    .progress-stats h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--primary);
+    }
+    .stats-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .pill-pending { background: var(--warning-light); color: #92400e; }
+    .pill-uploaded { background: var(--info-light); color: #1e40af; }
+    .pill-accepted { background: var(--success-light); color: #065f46; }
+    .pill-rejected { background: var(--danger-light); color: #991b1b; }
+    .pill .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .pill-pending .dot { background: var(--warning); }
+    .pill-uploaded .dot { background: var(--info); }
+    .pill-accepted .dot { background: var(--success); }
+    .pill-rejected .dot { background: var(--danger); }
+
+    /* Content */
+    .content {
+      max-width: 900px;
+      margin: 24px auto;
+      padding: 0 20px 40px;
+    }
+    .info-banner {
+      background: var(--info-light);
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: #1e40af;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    /* Category */
+    .category-section {
+      margin-bottom: 16px;
+    }
+    .category-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+      padding: 12px 0 8px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 0;
+    }
+
+    /* Document Item */
+    .doc-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .doc-item:last-child { border-bottom: none; }
+
+    .status-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .status-icon.pending { background: var(--warning-light); }
+    .status-icon.uploaded { background: var(--info-light); }
+    .status-icon.under_review { background: #ede9fe; }
+    .status-icon.accepted { background: var(--success-light); }
+    .status-icon.rejected { background: var(--danger-light); }
+
+    .doc-content { flex: 1; }
+    .doc-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .doc-required {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--danger);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .doc-status-text {
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .doc-status-text.pending { color: var(--warning); }
+    .doc-status-text.uploaded { color: var(--info); }
+    .doc-status-text.under_review { color: #7c3aed; }
+    .doc-status-text.accepted { color: var(--success); }
+    .doc-status-text.rejected { color: var(--danger); }
+
+    .doc-note {
+      font-size: 13px;
+      color: var(--danger);
+      margin-top: 6px;
+      padding: 8px 12px;
+      background: var(--danger-light);
+      border-radius: 8px;
+      font-style: italic;
+    }
+    .doc-timestamps {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* Client actions */
+    .doc-actions {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-end;
+    }
+    .btn-small {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+    .btn-mark-sent {
+      background: var(--primary-light);
+      color: white;
+    }
+    .btn-mark-sent:hover { background: var(--primary); }
+    .btn-add-note {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+    .btn-add-note:hover { border-color: var(--primary-light); color: var(--primary-light); }
+
+    /* Note modal */
+    .note-modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .note-modal-overlay.active { display: flex; }
+    .note-modal {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      width: 90%;
+      max-width: 440px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .note-modal h3 { font-size: 16px; margin-bottom: 12px; }
+    .note-modal textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+    }
+    .note-modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+    .note-modal .btn-cancel {
+      background: none;
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .note-modal .btn-send {
+      background: var(--primary-light);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--success);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      z-index: 2000;
+      display: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .toast.show { display: block; }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Error page */
+    .error-page {
+      display: none;
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .error-page h2 { font-size: 24px; color: var(--primary); margin-bottom: 12px; }
+    .error-page p { color: var(--text-secondary); }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 60px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    @media (max-width: 600px) {
+      .progress-card { flex-direction: column; text-align: center; }
+      .stats-pills { justify-content: center; }
+      .doc-item { flex-direction: column; gap: 8px; }
+      .doc-actions { flex-direction: row; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loadingView" class="loading">Loading your document checklist...</div>
+
+  <div id="errorView" class="error-page">
+    <h2>Link Not Found</h2>
+    <p>This checklist link is invalid or has expired. Please contact RP Immigration Consulting for a new link.</p>
+  </div>
+
+  <div id="mainView" style="display:none;">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-top">
+        <div class="brand">
+          <div class="brand-icon">🏛️</div>
+          <div>
+            <h1>RP Immigration Consulting</h1>
+            <div class="sub">Document Checklist Portal</div>
+          </div>
+        </div>
+        <div class="welcome-box">
+          <h2 id="clientName">—</h2>
+          <div class="case-type" id="caseType">—</div>
+          <div class="assigned" id="assignedInfo"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-hero">
+      <div class="progress-card">
+        <div class="progress-circle">
+          <svg viewBox="0 0 80 80">
+            <circle class="bg" cx="40" cy="40" r="34" fill="none" stroke-width="6"/>
+            <circle class="fill-ring" id="progressRing" cx="40" cy="40" r="34" fill="none" stroke-width="6" stroke-linecap="round"
+              stroke-dasharray="213.6" stroke-dashoffset="213.6"/>
+          </svg>
+          <div class="pct" id="progressPct">0%</div>
+        </div>
+        <div class="progress-stats">
+          <h3>Document Collection Progress</h3>
+          <div class="stats-pills" id="statsPills"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <div class="info-banner" id="infoBanner">
+        Please submit the documents listed below. You can mark a document as "Sent" once you've shared it with us via WhatsApp or Google Drive.
+        Our team will review each document and update the status. If there's an issue, you'll see a note explaining what's needed.
+      </div>
+      <div id="documentList"></div>
+    </div>
+
+    <div class="footer">
+      &copy; RP Immigration Consulting · Your documents are handled securely and confidentially.
+    </div>
+  </div>
+
+  <!-- Note Modal -->
+  <div class="note-modal-overlay" id="noteModal">
+    <div class="note-modal">
+      <h3 id="noteModalTitle">Add a Note</h3>
+      <textarea id="noteText" rows="3" placeholder="Add a note for the filing team..."></textarea>
+      <div class="note-modal-actions">
+        <button class="btn-cancel" onclick="closeNoteModal()">Cancel</button>
+        <button class="btn-send" id="noteSubmitBtn" onclick="submitNote()">Send Note</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mark Sent Modal -->
+  <div class="note-modal-overlay" id="markSentModal">
+    <div class="note-modal">
+      <h3 id="markSentTitle">Confirm Document Sent</h3>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Please confirm you have sent this document via WhatsApp or uploaded it to Google Drive.</p>
+      <textarea id="markSentNote" rows="2" placeholder="Optional: Add a note (e.g. 'Sent via WhatsApp to office number')"></textarea>
+      <div class="note-modal-actions">
+        <button class="btn-cancel" onclick="closeMarkSentModal()">Cancel</button>
+        <button class="btn-send" onclick="submitMarkSent()">Confirm Sent</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    let caseData = null;
+    let currentDocId = null;
+    const token = window.location.pathname.split('/').pop();
+
+    async function loadData() {
+      try {
+        const res = await fetch(`/api/client/${token}`);
+        if (!res.ok) throw new Error('Not found');
+        caseData = await res.json();
+        render();
+        document.getElementById('loadingView').style.display = 'none';
+        document.getElementById('mainView').style.display = 'block';
+      } catch (e) {
+        document.getElementById('loadingView').style.display = 'none';
+        document.getElementById('errorView').style.display = 'block';
+      }
+    }
+
+    function render() {
+      document.title = `Document Checklist - ${caseData.client_name} - RP Immigration`;
+      document.getElementById('clientName').textContent = caseData.client_name;
+      document.getElementById('caseType').textContent = caseData.case_type_name;
+      if (caseData.assigned_to_name) {
+        document.getElementById('assignedInfo').textContent = `Your case manager: ${caseData.assigned_to_name}`;
+      }
+      if (caseData.deadline) {
+        document.getElementById('assignedInfo').textContent += ` · Target date: ${caseData.deadline}`;
+      }
+
+      // Progress
+      const total = caseData.documents.length;
+      const accepted = caseData.documents.filter(d => d.status === 'accepted').length;
+      const uploaded = caseData.documents.filter(d => d.status === 'uploaded' || d.status === 'under_review').length;
+      const rejected = caseData.documents.filter(d => d.status === 'rejected').length;
+      const pending = caseData.documents.filter(d => d.status === 'pending').length;
+      const pct = total > 0 ? Math.round((accepted / total) * 100) : 0;
+
+      document.getElementById('progressPct').textContent = pct + '%';
+      const ring = document.getElementById('progressRing');
+      const circumference = 2 * Math.PI * 34;
+      ring.style.strokeDasharray = circumference;
+      ring.style.strokeDashoffset = circumference - (pct / 100) * circumference;
+
+      document.getElementById('statsPills').innerHTML = [
+        pending > 0 ? `<div class="pill pill-pending"><span class="dot"></span>${pending} Pending</div>` : '',
+        uploaded > 0 ? `<div class="pill pill-uploaded"><span class="dot"></span>${uploaded} Under Review</div>` : '',
+        accepted > 0 ? `<div class="pill pill-accepted"><span class="dot"></span>${accepted} Accepted</div>` : '',
+        rejected > 0 ? `<div class="pill pill-rejected"><span class="dot"></span>${rejected} Action Needed</div>` : '',
+      ].filter(Boolean).join('');
+
+      // Update banner if all complete
+      if (pct === 100) {
+        document.getElementById('infoBanner').innerHTML = '✅ All documents have been received and accepted. Thank you! Our filing team is now preparing your application package.';
+        document.getElementById('infoBanner').style.background = '#d1fae5';
+        document.getElementById('infoBanner').style.borderColor = '#6ee7b7';
+        document.getElementById('infoBanner').style.color = '#065f46';
+      }
+
+      // Group by category
+      const categories = {};
+      caseData.documents.forEach(d => {
+        if (!categories[d.category]) categories[d.category] = [];
+        categories[d.category].push(d);
+      });
+
+      const statusIcons = {
+        pending: '⏳',
+        uploaded: '📤',
+        under_review: '🔍',
+        accepted: '✅',
+        rejected: '❌',
+      };
+      const statusText = {
+        pending: 'Not yet submitted',
+        uploaded: 'Submitted — Under review by our team',
+        under_review: 'Under review',
+        accepted: 'Accepted',
+        rejected: 'Action needed — Please see note below',
+      };
+
+      document.getElementById('documentList').innerHTML = Object.keys(categories).map(cat => `
+        <div class="category-section">
+          <div class="category-title">${esc(cat)}</div>
+          ${categories[cat].map(d => `
+            <div class="doc-item">
+              <div class="status-icon ${d.status}">${statusIcons[d.status] || '⏳'}</div>
+              <div class="doc-content">
+                <div class="doc-name">${esc(d.document_name)} ${d.is_required ? '<span class="doc-required">Required</span>' : ''}</div>
+                <div class="doc-status-text ${d.status}">${statusText[d.status]}</div>
+                ${d.status === 'rejected' && d.status_note ? `<div class="doc-note">⚠️ ${esc(d.status_note)}</div>` : ''}
+                ${d.client_note ? `<div class="doc-timestamps">Your note: ${esc(d.client_note)}</div>` : ''}
+                <div class="doc-timestamps">
+                  ${d.submitted_at ? `Submitted: ${formatDate(d.submitted_at)}` : ''}
+                  ${d.reviewed_at ? ` · Reviewed: ${formatDate(d.reviewed_at)}` : ''}
+                </div>
+              </div>
+              <div class="doc-actions">
+                ${(d.status === 'pending' || d.status === 'rejected') ? `<button class="btn-small btn-mark-sent" onclick="openMarkSent(${d.id}, '${esc(d.document_name)}')">Mark as Sent</button>` : ''}
+                ${d.status === 'pending' ? `<button class="btn-small btn-add-note" onclick="openNoteModal(${d.id}, '${esc(d.document_name)}')">Add Note</button>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `).join('');
+    }
+
+    // Note modal
+    function openNoteModal(docId, docName) {
+      currentDocId = docId;
+      document.getElementById('noteModalTitle').textContent = `Note for: ${docName}`;
+      document.getElementById('noteText').value = '';
+      document.getElementById('noteModal').classList.add('active');
+    }
+    function closeNoteModal() {
+      document.getElementById('noteModal').classList.remove('active');
+    }
+    async function submitNote() {
+      const note = document.getElementById('noteText').value.trim();
+      if (!note) return;
+      await fetch(`/api/client/${token}/documents/${currentDocId}/note`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_note: note })
+      });
+      closeNoteModal();
+      toast('Note saved');
+      loadData();
+    }
+
+    // Mark sent modal
+    function openMarkSent(docId, docName) {
+      currentDocId = docId;
+      document.getElementById('markSentTitle').textContent = `Confirm: ${docName}`;
+      document.getElementById('markSentNote').value = '';
+      document.getElementById('markSentModal').classList.add('active');
+    }
+    function closeMarkSentModal() {
+      document.getElementById('markSentModal').classList.remove('active');
+    }
+    async function submitMarkSent() {
+      const note = document.getElementById('markSentNote').value.trim();
+      await fetch(`/api/client/${token}/documents/${currentDocId}/mark-sent`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_note: note || null })
+      });
+      closeMarkSentModal();
+      toast('Document marked as sent!');
+      loadData();
+    }
+
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show';
+      setTimeout(() => t.className = 'toast', 3000);
+    }
+
+    function formatDate(d) {
+      if (!d) return '';
+      return new Date(d).toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function esc(s) {
+      if (!s) return '';
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    // Auto-refresh every 30 seconds
+    setInterval(loadData, 30000);
+
+    loadData();
+  </script>
+</body>
+</html>

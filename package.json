@@ -1,0 +1,19 @@
+{
+  "name": "rp-immigration-checklist",
+  "version": "1.0.0",
+  "description": "Client Document Checklist System for RP Immigration Consulting",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "backup": "bash scripts/backup.sh"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^9.4.3",
+    "crypto": "^1.0.1",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "sql.js": "^1.14.1"
+  }
+}
