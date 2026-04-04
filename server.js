@@ -46,6 +46,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Trust Railway/Render proxy for secure cookies
+if (IS_PROD) app.set('trust proxy', 1);
+
 app.use(session({
   secret: getSessionSecret(),
   resave: false,
