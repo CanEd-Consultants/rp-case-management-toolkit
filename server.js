@@ -1113,6 +1113,7 @@ app.put('/api/notifications/read-all', requireAuth, (req, res) => {
 
 // ==================== SERVE PAGES ====================
 
+app.get('/', (req, res) => res.redirect('/staff'));
 app.get('/staff', (req, res) => res.sendFile(path.join(__dirname, 'public', 'staff', 'login.html')));
 app.get('/staff/dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 'staff', 'dashboard.html')));
 app.get('/portal/:token', (req, res) => res.sendFile(path.join(__dirname, 'public', 'client', 'portal.html')));
