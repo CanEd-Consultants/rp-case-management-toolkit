@@ -3,666 +3,663 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - RP Immigration Consulting</title>
+  <title>Filing Operations Toolkit - RP Immigration Consulting</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --primary: #1a2a4a;
-      --primary-light: #2d6ab4;
+      --primary: #1a1a2e;
+      --primary-light: #4f6df5;
       --accent: #e8b931;
-      --bg: #f0f2f5;
+      --bg: #f8f9fb;
       --card: #ffffff;
       --text: #1a1a2e;
       --text-secondary: #6b7280;
-      --border: #e5e7eb;
+      --border: #eaedf2;
       --success: #059669;
       --warning: #d97706;
       --danger: #dc2626;
       --info: #2563eb;
-      --sidebar-width: 250px;
+      --sidebar-width: 240px;
+      --sidebar-bg: #1a2a4a;
     }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; letter-spacing: -0.01em; }
 
     /* Sidebar */
-    .sidebar {
-      position: fixed;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: var(--sidebar-width);
-      background: var(--primary);
-      color: white;
-      padding: 24px 0;
-      z-index: 100;
-      overflow-y: auto;
-    }
-    .sidebar-brand {
-      padding: 0 20px 24px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      margin-bottom: 16px;
-    }
-    .sidebar-brand h2 {
-      font-size: 16px;
-      font-weight: 700;
-      line-height: 1.3;
-    }
-    .sidebar-brand .sub { font-size: 11px; opacity: 0.6; margin-top: 2px; }
-    .nav-item {
-      display: flex;
-      align-items: center;
-      padding: 12px 20px;
-      color: rgba(255,255,255,0.7);
-      text-decoration: none;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.15s;
-      gap: 10px;
-    }
-    .nav-item:hover, .nav-item.active {
-      background: rgba(255,255,255,0.1);
-      color: white;
-    }
-    .nav-item .icon { font-size: 18px; width: 24px; text-align: center; }
-    .nav-section {
-      padding: 16px 20px 6px;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      opacity: 0.4;
-      font-weight: 600;
-    }
-    .user-info {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 16px 20px;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      background: rgba(0,0,0,0.15);
-      font-size: 13px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .user-info .logout { color: rgba(255,255,255,0.5); cursor: pointer; font-size: 12px; }
-    .user-info .logout:hover { color: white; }
+    .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-width); background: var(--sidebar-bg); color: white; padding: 20px 0; z-index: 100; overflow-y: auto; display: flex; flex-direction: column; }
+    .sidebar-brand { padding: 0 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; }
+    .sidebar-brand h2 { font-size: 14px; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
+    .sidebar-brand .sub { font-size: 10px; opacity: 0.4; margin-top: 2px; font-weight: 400; }
+    .nav-item { display: flex; align-items: center; padding: 9px 16px; color: rgba(255,255,255,0.55); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s ease; gap: 10px; text-decoration: none; border-radius: 0; }
+    .nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.9); }
+    .nav-item.active { background: rgba(255,255,255,0.1); color: white; }
+    .nav-item .icon { font-size: 15px; width: 22px; text-align: center; }
+    .nav-item .badge-count { background: var(--danger); color: white; font-size: 10px; padding: 1px 6px; border-radius: 10px; margin-left: auto; }
+    .nav-section { padding: 14px 16px 4px; font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.3; font-weight: 500; }
+    .sidebar-bottom { margin-top: auto; padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.08); font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .sidebar-bottom .logout { color: rgba(255,255,255,0.35); cursor: pointer; font-size: 11px; transition: color 0.15s ease; }
+    .sidebar-bottom .logout:hover { color: white; }
 
     /* Main Content */
-    .main {
-      margin-left: var(--sidebar-width);
-      padding: 28px 32px;
-      min-height: 100vh;
-    }
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-    .page-header h1 { font-size: 24px; font-weight: 700; color: var(--primary); }
+    .main { margin-left: var(--sidebar-width); padding: 28px 36px; min-height: 100vh; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .page-header h1 { font-size: 20px; font-weight: 600; color: var(--primary); }
+    .page-header .subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 2px; font-weight: 400; }
 
-    /* Stats Row */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 28px;
-    }
-    .stat-card {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    }
-    .stat-card .label { font-size: 12px; color: var(--text-secondary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
-    .stat-card .value { font-size: 32px; font-weight: 700; color: var(--primary); margin-top: 4px; }
-    .stat-card .detail { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+    /* Stats */
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .stat-card { background: var(--card); border-radius: 8px; padding: 18px; border: 1px solid var(--border); }
+    .stat-card .label { font-size: 10px; color: var(--text-secondary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-card .value { font-size: 26px; font-weight: 600; color: var(--primary); margin-top: 2px; }
+    .stat-card .detail { font-size: 11px; color: var(--text-secondary); margin-top: 2px; font-weight: 400; }
     .stat-card.success .value { color: var(--success); }
     .stat-card.warning .value { color: var(--warning); }
     .stat-card.danger .value { color: var(--danger); }
 
-    /* Cards / Tables */
-    .card {
-      background: var(--card);
-      border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-      margin-bottom: 20px;
-      overflow: hidden;
-    }
-    .card-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .card-header h3 { font-size: 15px; font-weight: 600; }
-    .card-body { padding: 20px; }
+    /* Cards */
+    .card { background: var(--card); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 16px; overflow: hidden; }
+    .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .card-header h3 { font-size: 13px; font-weight: 600; }
+    .card-body { padding: 20px 24px; }
 
     /* Buttons */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      transition: all 0.15s;
-    }
+    .btn { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s ease; }
     .btn-primary { background: var(--primary-light); color: white; }
-    .btn-primary:hover { background: var(--primary); }
+    .btn-primary:hover { background: #3d5bd9; }
     .btn-success { background: var(--success); color: white; }
+    .btn-success:hover { opacity: 0.9; }
     .btn-warning { background: var(--warning); color: white; }
+    .btn-warning:hover { opacity: 0.9; }
     .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: #b91c1c; }
     .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
     .btn-outline:hover { border-color: var(--primary-light); color: var(--primary-light); }
-    .btn-sm { padding: 5px 10px; font-size: 12px; }
-    .btn-xs { padding: 3px 8px; font-size: 11px; border-radius: 6px; }
+    .btn-sm { padding: 4px 10px; font-size: 11px; }
+    .btn-xs { padding: 3px 8px; font-size: 10px; border-radius: 5px; }
 
-    /* Table */
+    /* Tables */
     table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); font-weight: 600; background: #f8f9fa; }
-    td { padding: 12px 16px; font-size: 13px; border-top: 1px solid var(--border); vertical-align: middle; }
+    th { text-align: left; padding: 8px 14px; font-size: 11px; color: var(--text-secondary); font-weight: 500; border-bottom: 1px solid var(--border); }
+    td { padding: 10px 14px; font-size: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
     tr:hover td { background: #f8faff; }
 
-    /* Status badges */
-    .badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-    .badge-pending { background: #fef3c7; color: #92400e; }
-    .badge-uploaded { background: #dbeafe; color: #1e40af; }
-    .badge-accepted { background: #d1fae5; color: #065f46; }
-    .badge-rejected { background: #fee2e2; color: #991b1b; }
-    .badge-active { background: #dbeafe; color: #1e40af; }
-    .badge-documents_complete { background: #d1fae5; color: #065f46; }
-    .badge-completed { background: #d1fae5; color: #065f46; }
-    .badge-on_hold { background: #fef3c7; color: #92400e; }
-    .badge-under_review { background: #ede9fe; color: #5b21b6; }
+    /* Badges */
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 500; letter-spacing: 0.2px; }
+    .badge-new { background: #f3f0ff; color: #5b21b6; }
+    .badge-assigned { background: #eef2ff; color: #1e40af; }
+    .badge-in_progress { background: #fefce8; color: #92400e; }
+    .badge-docs_complete, .badge-documents_complete { background: #ecfdf5; color: #065f46; }
+    .badge-filing { background: #eef2ff; color: #3730a3; }
+    .badge-submitted { background: #eef2ff; color: #1e40af; }
+    .badge-in_process { background: #fefce8; color: #92400e; }
+    .badge-approved { background: #ecfdf5; color: #065f46; }
+    .badge-refused { background: #fef2f2; color: #991b1b; }
+    .badge-withdrawn { background: #f5f5f5; color: #6b7280; }
+    .badge-active { background: #eef2ff; color: #1e40af; }
+    .badge-on_hold { background: #fefce8; color: #92400e; }
+    .badge-completed { background: #ecfdf5; color: #065f46; }
+    .badge-pending { background: #fefce8; color: #92400e; }
+    .badge-uploaded { background: #eef2ff; color: #1e40af; }
+    .badge-accepted { background: #ecfdf5; color: #065f46; }
+    .badge-rejected { background: #fef2f2; color: #991b1b; }
+    .badge-under_review { background: #f3f0ff; color: #5b21b6; }
+    .badge-high { background: #fef2f2; color: #991b1b; }
+    .badge-medium { background: #fefce8; color: #92400e; }
+    .badge-low { background: #ecfdf5; color: #065f46; }
+
+    /* Priority dot */
+    .priority-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .priority-dot.high { background: var(--danger); }
+    .priority-dot.medium { background: var(--warning); }
+    .priority-dot.low { background: var(--success); }
 
     /* Progress bar */
-    .progress-bar {
-      height: 6px;
-      background: #e5e7eb;
-      border-radius: 3px;
-      overflow: hidden;
-      width: 100%;
-    }
-    .progress-bar .fill {
-      height: 100%;
-      border-radius: 3px;
-      transition: width 0.3s;
-    }
+    .progress-bar { height: 5px; background: #eaedf2; border-radius: 3px; overflow: hidden; width: 100%; }
+    .progress-bar .fill { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
     .progress-bar .fill.green { background: var(--success); }
     .progress-bar .fill.yellow { background: var(--warning); }
     .progress-bar .fill.red { background: var(--danger); }
 
     /* Modal */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 1000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: none; align-items: center; justify-content: center; }
     .modal-overlay.active { display: flex; }
-    .modal {
-      background: white;
-      border-radius: 16px;
-      width: 90%;
-      max-width: 700px;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-    .modal-header {
-      padding: 20px 24px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .modal-header h2 { font-size: 18px; }
-    .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary); }
-    .modal-body { padding: 24px; }
-    .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+    .modal { background: white; border-radius: 12px; width: 90%; max-width: 640px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+    .modal-header { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h2 { font-size: 15px; font-weight: 600; }
+    .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-secondary); transition: color 0.15s ease; }
+    .modal-close:hover { color: var(--text); }
+    .modal-body { padding: 22px; }
+    .modal-footer { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
 
     /* Form */
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; }
-    .form-group input, .form-group select, .form-group textarea {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-size: 14px;
-      outline: none;
-      font-family: inherit;
-    }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary-light); }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; outline: none; font-family: inherit; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(79,109,245,0.1); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
 
-    /* Activity log */
-    .activity-item {
-      display: flex;
-      gap: 12px;
-      padding: 10px 0;
-      border-bottom: 1px solid #f3f4f6;
-      font-size: 13px;
-    }
+    /* Activity */
+    .activity-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f3f4f6; font-size: 12px; }
     .activity-item:last-child { border-bottom: none; }
-    .activity-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--primary-light);
-      margin-top: 5px;
-      flex-shrink: 0;
-    }
-    .activity-time { color: var(--text-secondary); font-size: 11px; margin-top: 2px; }
+    .activity-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--primary-light); margin-top: 5px; flex-shrink: 0; }
+    .activity-time { color: var(--text-secondary); font-size: 10px; margin-top: 2px; }
 
     /* Client link */
-    .client-link-box {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: #f0f7ff;
-      padding: 10px 14px;
-      border-radius: 8px;
-      margin-top: 8px;
-    }
-    .client-link-box input {
-      flex: 1;
-      border: none;
-      background: transparent;
-      font-size: 13px;
-      color: var(--primary-light);
-      outline: none;
-    }
-    .client-link-box .copy-btn {
-      padding: 4px 12px;
-      font-size: 12px;
-      background: var(--primary-light);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+    .client-link-box { display: flex; align-items: center; gap: 8px; background: #f0f5ff; padding: 8px 12px; border-radius: 6px; margin-top: 6px; }
+    .client-link-box input { flex: 1; border: none; background: transparent; font-size: 12px; color: var(--primary-light); outline: none; }
+    .client-link-box .copy-btn { padding: 3px 10px; font-size: 11px; background: var(--primary-light); color: white; border: none; border-radius: 5px; cursor: pointer; transition: background 0.15s ease; }
+    .client-link-box .copy-btn:hover { background: #3d5bd9; }
 
-    /* Checklist in case detail */
-    .doc-list-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid #f3f4f6;
-    }
+    /* Doc list */
+    .doc-list-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
     .doc-list-item:last-child { border-bottom: none; }
     .doc-info { flex: 1; }
-    .doc-info .doc-name { font-size: 14px; font-weight: 500; }
-    .doc-info .doc-meta { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
-    .doc-info .doc-note { font-size: 12px; color: var(--danger); margin-top: 4px; font-style: italic; }
-    .doc-info .client-note { font-size: 12px; color: var(--info); margin-top: 2px; }
+    .doc-info .doc-name { font-size: 13px; font-weight: 500; }
+    .doc-info .doc-meta { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+    .doc-info .doc-note { font-size: 11px; color: var(--danger); margin-top: 3px; font-style: italic; }
+    .doc-info .client-note { font-size: 11px; color: var(--info); margin-top: 2px; }
     .doc-actions { display: flex; gap: 4px; }
-    .required-mark { color: var(--danger); font-size: 10px; font-weight: 700; }
+    .required-mark { color: var(--danger); font-size: 9px; font-weight: 600; }
+    .category-header { font-size: 11px; font-weight: 600; letter-spacing: 0.3px; color: var(--text-secondary); padding: 14px 0 6px; border-bottom: 1px solid var(--border); margin-top: 6px; }
 
-    /* Category grouping */
-    .category-header {
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-secondary);
-      padding: 16px 0 8px;
-      border-bottom: 2px solid var(--border);
-      margin-top: 8px;
-    }
+    /* Search */
+    .search-bar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .search-bar input { flex: 1; padding: 7px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; outline: none; min-width: 150px; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+    .search-bar input:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(79,109,245,0.1); }
+    .search-bar select { padding: 7px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; outline: none; background: white; transition: border-color 0.15s ease; }
+    .search-bar select:focus { border-color: var(--primary-light); }
 
-    /* Search / filter */
-    .search-bar {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-    .search-bar input {
-      flex: 1;
-      padding: 8px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-size: 13px;
-      outline: none;
-    }
-    .search-bar select {
-      padding: 8px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-size: 13px;
-      outline: none;
-      background: white;
-    }
+    /* Tabs */
+    .tab-bar { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+    .tab-btn { padding: 8px 16px; font-size: 13px; font-weight: 500; color: var(--text-secondary); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+    .tab-btn:hover { color: var(--primary); }
+    .tab-btn.active { color: var(--primary-light); border-bottom-color: var(--primary-light); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* SLA */
+    .sla-tag { font-size: 10px; font-weight: 500; padding: 2px 6px; border-radius: 4px; }
+    .sla-ok { background: #ecfdf5; color: #065f46; }
+    .sla-warning { background: #fefce8; color: #92400e; }
+    .sla-overdue { background: #fef2f2; color: #991b1b; }
+
+    /* Finance */
+    .finance-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .finance-card { background: var(--card); border-radius: 8px; padding: 18px; border: 1px solid var(--border); text-align: center; }
+    .finance-card .fin-label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 500; letter-spacing: 0.3px; }
+    .finance-card .fin-value { font-size: 22px; font-weight: 600; margin-top: 4px; }
+    .finance-card.green .fin-value { color: var(--success); }
+    .finance-card.red .fin-value { color: var(--danger); }
+
+    /* Notification bell */
+    .notif-bell { position: relative; cursor: pointer; font-size: 18px; transition: transform 0.15s ease; }
+    .notif-bell:hover { transform: scale(1.1); }
+    .notif-badge { position: absolute; top: -6px; right: -8px; background: var(--danger); color: white; font-size: 9px; font-weight: 600; padding: 1px 5px; border-radius: 10px; }
+    .notif-dropdown { position: absolute; top: 100%; right: 0; width: 320px; background: white; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.12); z-index: 200; max-height: 400px; overflow-y: auto; display: none; border: 1px solid var(--border); }
+    .notif-dropdown.show { display: block; }
+    .notif-item { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 12px; cursor: pointer; transition: background 0.15s ease; }
+    .notif-item:hover { background: #f8faff; }
+    .notif-item.unread { background: #f0f5ff; }
+    .notif-item .notif-time { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+
+    /* Pulse animation for queue badge and notifications */
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(220,38,38,0.4); } 70% { box-shadow: 0 0 0 8px rgba(220,38,38,0); } 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); } }
+    .badge-count.pulse { animation: pulse 1.5s infinite; }
+    @keyframes bellBounce { 0%,100% { transform: rotate(0); } 15% { transform: rotate(12deg); } 30% { transform: rotate(-10deg); } 45% { transform: rotate(6deg); } 60% { transform: rotate(-4deg); } 75% { transform: rotate(2deg); } }
+    .notif-bell.has-notif { animation: bellBounce 1.5s ease-in-out; }
 
     /* Views */
     .view { display: none; }
     .view.active { display: block; }
 
-    /* Toast notification */
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: var(--primary);
-      color: white;
-      padding: 12px 20px;
-      border-radius: 10px;
-      font-size: 13px;
-      z-index: 2000;
-      display: none;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    }
+    /* Toast */
+    .toast { position: fixed; bottom: 20px; right: 20px; background: var(--primary); color: white; padding: 10px 18px; border-radius: 6px; font-size: 12px; z-index: 2000; display: none; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
     .toast.success { background: var(--success); }
     .toast.error { background: var(--danger); }
     .toast.show { display: block; }
 
+    /* KT Summary */
+    .kt-summary-section { margin-bottom: 20px; }
+    .kt-summary-section h4 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); padding-bottom: 6px; border-bottom: 1px solid var(--primary-light); margin-bottom: 10px; }
+    .kt-summary-row { display: flex; padding: 4px 0; font-size: 12px; border-bottom: 1px solid #f3f4f6; }
+    .kt-summary-label { width: 200px; flex-shrink: 0; font-weight: 500; color: var(--text-secondary); }
+    .kt-summary-value { flex: 1; }
+
+    /* Deleted row */
+    .row-deleted td { text-decoration: line-through; opacity: 0.5; }
+
+    /* Drill-down highlight card */
+    .drill-down-header { background: #f0f5ff; border: 1px solid #d0deff; border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; }
+    .drill-down-header h3 { font-size: 14px; font-weight: 600; color: var(--primary); margin-bottom: 4px; }
+    .drill-down-header .drill-summary { font-size: 12px; color: var(--text-secondary); }
+
+    /* Trash icon button */
+    .btn-trash { background: none; border: none; cursor: pointer; color: var(--text-secondary); font-size: 14px; padding: 4px; transition: color 0.15s ease; }
+    .btn-trash:hover { color: var(--danger); }
+
+    /* Global Search */
+    .global-search-wrapper { position: relative; }
+    .global-search-input { width: 280px; padding: 8px 14px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; outline: none; background: var(--bg); }
+    .global-search-input:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(79,109,245,0.1); background: white; }
+    .global-search-results { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 200; display: none; max-height: 360px; overflow-y: auto; margin-top: 4px; }
+    .global-search-results.show { display: block; }
+    .search-result-item { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .search-result-item:hover { background: var(--bg); }
+    .search-result-item:last-child { border-bottom: none; }
+    .search-result-item .sr-name { font-weight: 600; }
+    .search-result-item .sr-meta { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+    /* Spinner */
+    .spinner { width: 24px; height: 24px; border: 2.5px solid var(--border); border-top-color: var(--primary-light); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Leaderboard */
+    .leaderboard-rank { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; font-size: 10px; font-weight: 700; }
+    .leaderboard-rank.gold { background: #fef3c7; color: #92400e; }
+    .leaderboard-rank.silver { background: #f3f4f6; color: #6b7280; }
+    .leaderboard-rank.bronze { background: #fed7aa; color: #9a3412; }
+
+    /* Stale case warning */
+    .stale-warning { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 14px 18px; margin-bottom: 16px; }
+    .stale-warning h4 { font-size: 12px; font-weight: 600; color: var(--danger); margin-bottom: 8px; }
+
+    /* Stage advance button */
+    .btn-advance { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--primary-light); color: white; border: none; cursor: pointer; font-size: 13px; font-weight: 700; transition: background 0.15s ease; }
+    .btn-advance:hover { background: #3d5bd9; }
+
     @media (max-width: 768px) {
-      .sidebar { width: 60px; }
-      .sidebar-brand h2, .sidebar-brand .sub, .nav-item span, .nav-section, .user-info { display: none; }
-      .nav-item { justify-content: center; padding: 14px; }
-      .main { margin-left: 60px; padding: 16px; }
-      .form-row { grid-template-columns: 1fr; }
+      .hamburger { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: none; border: 1px solid var(--border); border-radius: 6px; font-size: 18px; cursor: pointer; color: var(--text); }
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; position: fixed; z-index: 300; width: var(--sidebar-width); }
+      .sidebar.mobile-open { transform: translateX(0); }
+      .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 299; }
+      .mobile-overlay.show { display: block; }
+      .main { margin-left: 0 !important; padding: 16px !important; }
+      .global-search-input { width: 160px; }
+      .form-row, .form-row-3 { grid-template-columns: 1fr; }
+      .finance-summary { grid-template-columns: 1fr; }
+    }
+
+    @media (min-width: 769px) {
+      .hamburger { display: none; }
+      .mobile-overlay { display: none !important; }
+    }
+
+    @media print {
+      .sidebar, .toast, .modal-overlay, .btn, .search-bar, .no-print { display: none !important; }
+      .main { margin-left: 0 !important; padding: 0 !important; }
+      .card { box-shadow: none !important; border: 1px solid #ddd; }
     }
   </style>
 </head>
 <body>
-  <!-- Sidebar -->
   <div class="sidebar">
     <div class="sidebar-brand">
-      <h2>RP Immigration Consulting</h2>
-      <div class="sub">Case Management System</div>
+      <h2>RP Immigration</h2>
+      <div class="sub">Filing Operations Toolkit</div>
     </div>
-    <div class="nav-item active" onclick="showView('dashboard')">
-      <span class="icon">📊</span><span>Dashboard</span>
-    </div>
-    <div class="nav-item" onclick="showView('cases')">
-      <span class="icon">📁</span><span>All Cases</span>
-    </div>
-    <div class="nav-item" onclick="openNewCaseModal()">
-      <span class="icon">➕</span><span>New Case (KT Form)</span>
-    </div>
-    <div class="nav-section">Administration</div>
-    <div class="nav-item" onclick="showView('team')">
-      <span class="icon">👥</span><span>Team Members</span>
-    </div>
-    <div class="user-info">
-      <span id="currentUser">Loading...</span>
+    <div id="sidebarNav"></div>
+    <div class="sidebar-bottom">
+      <div><span id="currentUser">Loading...</span><br><span id="currentRole" style="font-size:10px;opacity:0.5;"></span></div>
       <span class="logout" onclick="logout()">Sign out</span>
     </div>
   </div>
 
-  <!-- Main Content -->
   <div class="main">
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleMobileNav()">☰</button>
+    <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileNav()"></div>
+
+    <!-- Top bar with notifications -->
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;position:relative;" class="no-print">
+      <div style="display:flex;gap:12px;align-items:center;position:relative;">
+        <div class="global-search-wrapper">
+          <input type="text" class="global-search-input" id="globalSearchInput" placeholder="Search clients, emails, phone..." oninput="debounceSearch()">
+          <div class="global-search-results" id="globalSearchResults"></div>
+        </div>
+        <div class="notif-bell" id="notifBell" onclick="toggleNotifications()">
+          🔔<span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+        </div>
+      </div>
+      <div class="notif-dropdown" id="notifDropdown">
+        <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+          <strong style="font-size:13px;">Notifications</strong>
+          <span style="font-size:11px;color:var(--primary-light);cursor:pointer;" onclick="markAllRead()">Mark all read</span>
+        </div>
+        <div id="notifList"></div>
+      </div>
+    </div>
 
     <!-- Dashboard View -->
     <div id="view-dashboard" class="view active">
       <div class="page-header">
-        <h1>Dashboard</h1>
-        <button class="btn btn-primary" onclick="openNewCaseModal()">➕ New Case</button>
+        <div><h1>Dashboard</h1><div class="subtitle">Filing Operations Overview</div></div>
+        <button class="btn btn-primary" onclick="showView('kt-form')">+ New Case</button>
       </div>
       <div id="statsRow" class="stats-row"></div>
-      <div class="card">
-        <div class="card-header"><h3>Recent Activity</h3></div>
-        <div class="card-body" id="recentActivity"></div>
+      <div id="staleCasesWidget"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="card">
+          <div class="card-header"><h3>Staff Workload</h3></div>
+          <div class="card-body" id="workloadContent"></div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-header">
+              <h3>Sales Leaderboard</h3>
+              <select id="salesLeaderboardPeriod" onchange="loadLeaderboards()" style="padding:3px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;">
+                <option value="current_month">This Month</option>
+                <option value="1m">Last 1M</option>
+                <option value="3m">Last 3M</option>
+                <option value="6m">Last 6M</option>
+                <option value="all">All Time</option>
+              </select>
+            </div>
+            <div class="card-body" id="salesLeaderboard"></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3>Filing Leaderboard</h3>
+              <select id="filingLeaderboardPeriod" onchange="loadLeaderboards()" style="padding:3px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;">
+                <option value="current_month">This Month</option>
+                <option value="1m">Last 1M</option>
+                <option value="3m">Last 3M</option>
+                <option value="6m">Last 6M</option>
+                <option value="all">All Time</option>
+              </select>
+            </div>
+            <div class="card-body" id="filingLeaderboard"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <div class="card-header"><h3>My Tasks</h3></div>
+        <div class="card-body" id="myTasksWidget"></div>
       </div>
     </div>
 
-    <!-- Cases View -->
+    <!-- My Files View (Staff) -->
+    <div id="view-my-files" class="view">
+      <div class="page-header">
+        <div><h1>My Files</h1><div class="subtitle">Your assigned and created cases</div></div>
+      </div>
+      <div id="myFilesTabBar" class="tab-bar no-print"></div>
+      <div id="myFilesContent"></div>
+    </div>
+
+    <!-- All Cases View -->
     <div id="view-cases" class="view">
       <div class="page-header">
         <h1>All Cases</h1>
-        <button class="btn btn-primary" onclick="openNewCaseModal()">➕ New Case</button>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <label id="showDeletedToggle" style="display:none;font-size:12px;color:var(--text-secondary);cursor:pointer;user-select:none;">
+            <input type="checkbox" id="showDeletedCheck" onchange="loadCases()" style="margin-right:4px;">Show Deleted
+          </label>
+          <button class="btn btn-primary" onclick="showView('kt-form')">+ New Case</button>
+        </div>
       </div>
       <div class="search-bar">
         <input type="text" id="searchCases" placeholder="Search by client name..." oninput="renderCases()">
-        <select id="filterStatus" onchange="renderCases()">
-          <option value="">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="documents_complete">Docs Complete</option>
-          <option value="on_hold">On Hold</option>
-          <option value="completed">Completed</option>
+        <select id="filterStage" onchange="renderCases()">
+          <option value="">All Stages</option>
+          <option value="new">New</option>
+          <option value="assigned">Assigned</option>
+          <option value="in_progress">In Progress</option>
+          <option value="docs_complete">Docs Complete</option>
+          <option value="filing">Filing</option>
+          <option value="submitted">Submitted</option>
+          <option value="approved">Approved</option>
+          <option value="refused">Refused</option>
+        </select>
+        <select id="filterPriority" onchange="renderCases()">
+          <option value="">All Priorities</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+        <select id="filterCaseType" onchange="renderCases()">
+          <option value="">All Case Types</option>
+        </select>
+        <select id="filterCreatedBy" onchange="renderCases()">
+          <option value="">All Sales Staff</option>
+        </select>
+        <select id="filterAssignedTo" onchange="renderCases()">
+          <option value="">All Filing Staff</option>
         </select>
       </div>
-      <div class="card">
-        <table>
-          <thead>
-            <tr>
-              <th>Client</th>
-              <th>Case Type</th>
-              <th>Assigned To</th>
-              <th>Status</th>
-              <th>Progress</th>
-              <th>Created</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="casesTableBody"></tbody>
-        </table>
+      <div class="card"><table>
+        <thead><tr><th></th><th>Client</th><th>Case Type</th><th>Filing Staff</th><th>Sales Staff</th><th>Stage</th><th>SLA</th><th>Balance</th><th>Created</th><th id="deleteColHeader" style="display:none;">Delete</th></tr></thead>
+        <tbody id="casesTableBody"></tbody>
+      </table></div>
+    </div>
+
+    <!-- Assignment Queue View -->
+    <div id="view-queue" class="view">
+      <div class="page-header">
+        <div><h1>Assignment Queue</h1><div class="subtitle">Unassigned or new cases awaiting assignment</div></div>
       </div>
+      <div id="queueContent"></div>
     </div>
 
     <!-- Case Detail View -->
     <div id="view-case-detail" class="view">
-      <div class="page-header">
+      <div class="page-header no-print">
         <div>
-          <button class="btn btn-outline btn-sm" onclick="showView('cases')" style="margin-bottom:8px;">← Back to All Cases</button>
+          <button class="btn btn-outline btn-sm" onclick="showView('cases')" style="margin-bottom:6px;">← Back</button>
           <h1 id="caseDetailTitle">Case Detail</h1>
         </div>
-        <div style="display:flex;gap:8px;">
-          <button class="btn btn-outline btn-sm" onclick="editCurrentCase()">Edit Case</button>
-        </div>
+        <div id="caseDetailActions"></div>
       </div>
       <div id="caseDetailContent"></div>
+    </div>
+
+    <!-- KT Form View (Brief) -->
+    <div id="view-kt-form" class="view">
+      <div class="page-header">
+        <div><h1>New Case — Knowledge Transfer</h1><div class="subtitle">Brief intake form. Detailed client information will be collected via the client portal.</div></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="showView('dashboard')">Cancel</button>
+          <button class="btn btn-primary" onclick="submitKTForm()">Create Case</button>
+        </div>
+      </div>
+      <div id="ktFormContent"></div>
+      <div style="margin-top:16px;display:flex;justify-content:flex-end;gap:8px;">
+        <button class="btn btn-outline" onclick="showView('dashboard')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitKTForm()">Create Case</button>
+      </div>
+    </div>
+
+    <!-- Finance View (consolidated for all non-filing roles) -->
+    <div id="view-finance" class="view">
+      <div class="page-header">
+        <div><h1>Finance</h1><div class="subtitle">Revenue tracking and payment management</div></div>
+      </div>
+      <div id="financeTabBar" class="tab-bar no-print"></div>
+      <div id="financeTabContent"></div>
+    </div>
+
+    <!-- Statistics View (admin only) -->
+    <div id="view-statistics" class="view">
+      <div class="page-header">
+        <div><h1>Statistics</h1><div class="subtitle">Sales and filing team performance</div></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;" class="no-print" id="statsPeriodBar">
+        <button class="btn btn-xs btn-primary" onclick="setStatsPeriod('current_month',this)">This Month</button>
+        <button class="btn btn-xs btn-outline" onclick="setStatsPeriod('1m',this)">1M</button>
+        <button class="btn btn-xs btn-outline" onclick="setStatsPeriod('3m',this)">3M</button>
+        <button class="btn btn-xs btn-outline" onclick="setStatsPeriod('6m',this)">6M</button>
+        <button class="btn btn-xs btn-outline" onclick="setStatsPeriod('all',this)">All Time</button>
+      </div>
+      <div class="tab-bar no-print">
+        <button class="tab-btn active" onclick="switchStatTab('counsellor-stats',this)">Sales Team Stats</button>
+        <button class="tab-btn" onclick="switchStatTab('staff-stats',this)">Filing Team Stats</button>
+      </div>
+      <div id="tab-counsellor-stats" class="tab-content active"><div id="counsellorStatsContent"></div></div>
+      <div id="tab-staff-stats" class="tab-content"><div id="staffStatsContent"></div></div>
     </div>
 
     <!-- Team View -->
     <div id="view-team" class="view">
       <div class="page-header">
         <h1>Team Members</h1>
-        <button class="btn btn-primary" onclick="openAddUserModal()">➕ Add Member</button>
+        <button class="btn btn-primary" onclick="openAddUserModal()">+ Add Member</button>
       </div>
-      <div class="card">
-        <table>
-          <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Actions</th></tr></thead>
-          <tbody id="teamTableBody"></tbody>
-        </table>
+      <div class="card"><table>
+        <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Actions</th></tr></thead>
+        <tbody id="teamTableBody"></tbody>
+      </table></div>
+
+      <!-- Data Export Section (admin only) -->
+      <div class="card" style="margin-top:24px;">
+        <div class="card-header"><h3>Data Export</h3></div>
+        <div class="card-body" style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="btn btn-outline" onclick="window.location.href='/api/export/cases'">Export Cases (CSV)</button>
+          <button class="btn btn-outline" onclick="window.location.href='/api/export/finance'">Export Finance (CSV)</button>
+          <button class="btn btn-outline" onclick="window.location.href='/api/export/clients'">Export Client Info (CSV)</button>
+        </div>
       </div>
     </div>
 
-  </div>
-
-  <!-- New Case Modal (KT Form) -->
-  <div class="modal-overlay" id="newCaseModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>New Case — Knowledge Transfer Form</h2>
-        <button class="modal-close" onclick="closeModal('newCaseModal')">&times;</button>
+    <!-- SLA Config View (admin only) -->
+    <div id="view-sla-config" class="view">
+      <div class="page-header">
+        <div><h1>SLA Configuration</h1><div class="subtitle">Set expected and warning days per case type</div></div>
       </div>
-      <div class="modal-body">
-        <form id="ktForm">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Client Full Name *</label>
-              <input type="text" id="kt_client_name" required>
-            </div>
-            <div class="form-group">
-              <label>Case Type *</label>
-              <select id="kt_case_type" required></select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Email</label>
-              <input type="email" id="kt_email">
-            </div>
-            <div class="form-group">
-              <label>Phone</label>
-              <input type="text" id="kt_phone">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Assigned To</label>
-              <select id="kt_assigned_to"><option value="">Unassigned</option></select>
-            </div>
-            <div class="form-group">
-              <label>Deadline</label>
-              <input type="date" id="kt_deadline">
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Service Details</label>
-            <textarea id="kt_service_details" rows="2" placeholder="What service was sold? Any special arrangements?"></textarea>
-          </div>
-          <div class="form-group">
-            <label>Notes for Filing Team</label>
-            <textarea id="kt_notes" rows="3" placeholder="Important details, special circumstances, client preferences..."></textarea>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline" onclick="closeModal('newCaseModal')">Cancel</button>
-        <button class="btn btn-primary" onclick="submitKTForm()">Create Case</button>
-      </div>
+      <div id="slaConfigContent"></div>
     </div>
   </div>
 
-  <!-- Add Document Modal -->
+  <!-- Modals -->
   <div class="modal-overlay" id="addDocModal">
-    <div class="modal" style="max-width:500px;">
-      <div class="modal-header">
-        <h2>Add Document to Checklist</h2>
-        <button class="modal-close" onclick="closeModal('addDocModal')">&times;</button>
-      </div>
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-header"><h2>Add Document</h2><button class="modal-close" onclick="closeModal('addDocModal')">&times;</button></div>
       <div class="modal-body">
-        <div class="form-group">
-          <label>Document Name *</label>
-          <input type="text" id="addDoc_name" required>
+        <div class="form-group"><label>Document Name *</label><input type="text" id="addDoc_name"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Category</label><input type="text" id="addDoc_category" value="General"></div>
+          <div class="form-group"><label>Required?</label><select id="addDoc_required"><option value="1">Yes</option><option value="0">No</option></select></div>
+        </div>
+        <div class="form-group"><label>Description</label><input type="text" id="addDoc_desc"></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('addDocModal')">Cancel</button><button class="btn btn-primary" onclick="submitAddDoc()">Add</button></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="docStatusModal">
+    <div class="modal" style="max-width:460px;">
+      <div class="modal-header"><h2>Update Document</h2><button class="modal-close" onclick="closeModal('docStatusModal')">&times;</button></div>
+      <div class="modal-body">
+        <div class="form-group"><label>Document: <strong id="docStatusName"></strong></label></div>
+        <div class="form-group"><label>Status</label><select id="docStatus_status"><option value="pending">Pending</option><option value="uploaded">Uploaded</option><option value="under_review">Under Review</option><option value="accepted">Accepted</option><option value="rejected">Rejected</option></select></div>
+        <div class="form-group"><label>Note</label><textarea id="docStatus_note" rows="2"></textarea></div>
+        <div class="form-group"><label>File Reference</label><input type="text" id="docStatus_ref"></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('docStatusModal')">Cancel</button><button class="btn btn-primary" onclick="submitDocStatus()">Update</button></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="assignModal">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-header"><h2>Assign Case</h2><button class="modal-close" onclick="closeModal('assignModal')">&times;</button></div>
+      <div class="modal-body">
+        <div class="form-group"><label>Assign To</label><select id="assign_to"></select></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('assignModal')">Cancel</button><button class="btn btn-primary" onclick="submitAssign()">Assign</button></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="paymentModal">
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-header"><h2>Record Payment</h2><button class="modal-close" onclick="closeModal('paymentModal')">&times;</button></div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group"><label>Amount ($) *</label><input type="number" id="pay_amount" step="0.01"></div>
+          <div class="form-group"><label>Date *</label><input type="date" id="pay_date"></div>
         </div>
         <div class="form-row">
-          <div class="form-group">
-            <label>Category</label>
-            <input type="text" id="addDoc_category" value="General">
-          </div>
-          <div class="form-group">
-            <label>Required?</label>
-            <select id="addDoc_required">
-              <option value="1">Yes — Required</option>
-              <option value="0">No — Optional</option>
-            </select>
-          </div>
+          <div class="form-group"><label>Method</label><select id="pay_method"><option value="e-transfer">E-Transfer</option><option value="card">Card</option><option value="cash">Cash</option><option value="cheque">Cheque</option></select></div>
+          <div class="form-group"><label>Installment #</label><input type="number" id="pay_installment" min="1" max="4"></div>
         </div>
-        <div class="form-group">
-          <label>Description</label>
-          <input type="text" id="addDoc_desc" placeholder="Any notes about what's needed">
-        </div>
+        <div class="form-group"><label>Notes</label><input type="text" id="pay_notes"></div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline" onclick="closeModal('addDocModal')">Cancel</button>
-        <button class="btn btn-primary" onclick="submitAddDoc()">Add Document</button>
-      </div>
+      <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('paymentModal')">Cancel</button><button class="btn btn-primary" onclick="submitPayment()">Record Payment</button></div>
     </div>
   </div>
 
-  <!-- Document Status Modal -->
-  <div class="modal-overlay" id="docStatusModal">
-    <div class="modal" style="max-width:480px;">
-      <div class="modal-header">
-        <h2>Update Document Status</h2>
-        <button class="modal-close" onclick="closeModal('docStatusModal')">&times;</button>
-      </div>
+  <div class="modal-overlay" id="feeModal">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-header"><h2>Add Fee</h2><button class="modal-close" onclick="closeModal('feeModal')">&times;</button></div>
       <div class="modal-body">
-        <div class="form-group">
-          <label>Document: <strong id="docStatusName"></strong></label>
+        <div class="form-row">
+          <div class="form-group"><label>Fee Type *</label><select id="fee_type"><option value="processing">Processing Fee</option><option value="application">Application/Govt Fee</option><option value="other">Other</option></select></div>
+          <div class="form-group"><label>Amount ($) *</label><input type="number" id="fee_amount" step="0.01"></div>
         </div>
-        <div class="form-group">
-          <label>Status</label>
-          <select id="docStatus_status">
+        <div class="form-group"><label>Description</label><input type="text" id="fee_desc"></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('feeModal')">Cancel</button><button class="btn btn-primary" onclick="submitFee()">Add Fee</button></div>
+    </div>
+  </div>
+
+  <!-- Edit Fee Modal (F5) -->
+  <div class="modal-overlay" id="editFeeModal">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-header"><h2>Edit Fee</h2><button class="modal-close" onclick="closeModal('editFeeModal')">&times;</button></div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group"><label>Fee Type *</label><select id="editFee_type"><option value="processing">Processing Fee</option><option value="application">Application/Govt Fee</option><option value="other">Other</option></select></div>
+          <div class="form-group"><label>Amount ($) *</label><input type="number" id="editFee_amount" step="0.01"></div>
+        </div>
+        <div class="form-group"><label>Description</label><input type="text" id="editFee_desc"></div>
+        <div class="form-group" id="editFee_govtStatusGroup" style="display:none;">
+          <label>Govt Fee Status</label>
+          <select id="editFee_govtStatus">
             <option value="pending">Pending</option>
-            <option value="uploaded">Uploaded / Submitted by Client</option>
-            <option value="under_review">Under Review</option>
-            <option value="accepted">Accepted ✓</option>
-            <option value="rejected">Rejected — Needs Resubmission</option>
+            <option value="paid">Paid</option>
+            <option value="waived">Waived</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Note (visible to client if rejected)</label>
-          <textarea id="docStatus_note" rows="2" placeholder="e.g. Photo is blurry, please resend a clearer copy"></textarea>
-        </div>
-        <div class="form-group">
-          <label>File Reference (Google Drive link, etc.)</label>
-          <input type="text" id="docStatus_ref" placeholder="https://drive.google.com/...">
-        </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline" onclick="closeModal('docStatusModal')">Cancel</button>
-        <button class="btn btn-primary" onclick="submitDocStatus()">Update</button>
-      </div>
+      <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('editFeeModal')">Cancel</button><button class="btn btn-primary" onclick="submitEditFee()">Save</button></div>
     </div>
   </div>
 
-  <!-- Add User Modal -->
   <div class="modal-overlay" id="addUserModal">
-    <div class="modal" style="max-width:450px;">
-      <div class="modal-header">
-        <h2>Add Team Member</h2>
-        <button class="modal-close" onclick="closeModal('addUserModal')">&times;</button>
-      </div>
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-header"><h2>Add Team Member</h2><button class="modal-close" onclick="closeModal('addUserModal')">&times;</button></div>
       <div class="modal-body">
-        <div class="form-group">
-          <label>Full Name *</label>
-          <input type="text" id="newUser_name" required>
-        </div>
-        <div class="form-group">
-          <label>Username *</label>
-          <input type="text" id="newUser_username" required>
-        </div>
-        <div class="form-group">
-          <label>Password *</label>
-          <input type="password" id="newUser_password" required>
-        </div>
-        <div class="form-group">
-          <label>Role</label>
-          <select id="newUser_role">
-            <option value="filing">Filing Team</option>
-            <option value="sales">Sales</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
+        <div class="form-group"><label>Full Name *</label><input type="text" id="newUser_name"></div>
+        <div class="form-group"><label>Username *</label><input type="text" id="newUser_username"></div>
+        <div class="form-group"><label>Password *</label><input type="password" id="newUser_password"></div>
+        <div class="form-group"><label>Role</label><select id="newUser_role"><option value="filing">Filing Team (Member)</option><option value="team_lead">Team Lead</option><option value="sales">Sales / Counsellor</option><option value="admin">Admin / Manager</option></select></div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline" onclick="closeModal('addUserModal')">Cancel</button>
-        <button class="btn btn-primary" onclick="submitAddUser()">Add Member</button>
-      </div>
+      <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('addUserModal')">Cancel</button><button class="btn btn-primary" onclick="submitAddUser()">Add</button></div>
     </div>
   </div>
 
-  <!-- Toast -->
+  <!-- Edit User Modal -->
+  <div class="modal-overlay" id="editUserModal">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-header"><h2>Edit Team Member</h2><button class="modal-close" onclick="closeModal('editUserModal')">&times;</button></div>
+      <div class="modal-body">
+        <div class="form-group"><label>Full Name *</label><input type="text" id="editUser_name"></div>
+        <div class="form-group"><label>Role</label><select id="editUser_role"><option value="filing">Filing Team (Member)</option><option value="team_lead">Team Lead</option><option value="sales">Sales / Counsellor</option><option value="admin">Admin / Manager</option></select></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('editUserModal')">Cancel</button><button class="btn btn-primary" onclick="submitEditUser()">Save</button></div>
+    </div>
+  </div>
+
+  <!-- Reset Password Modal -->
+  <div class="modal-overlay" id="resetPwdModal">
+    <div class="modal" style="max-width:400px;">
+      <div class="modal-header"><h2>Reset Password</h2><button class="modal-close" onclick="closeModal('resetPwdModal')">&times;</button></div>
+      <div class="modal-body">
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">Resetting password for <strong id="resetPwd_userName"></strong></p>
+        <div class="form-group"><label>New Password * (min 6 characters)</label><input type="password" id="resetPwd_password" minlength="6"></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('resetPwdModal')">Cancel</button><button class="btn btn-primary" onclick="submitResetPassword()">Reset Password</button></div>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
 
   <script>
@@ -672,8 +669,111 @@
     let allUsers = [];
     let caseTypes = [];
     let currentCaseId = null;
+    let financeOverviewData = null;
+    let previousNotifCount = 0;
+    let currentStatsPeriod = 'current_month';
+    let myFilesData = { assigned: [], created: [] };
+    let currentMyFilesTab = 'active';
 
-    // ==================== INIT ====================
+    // ==================== GLOBAL FETCH WRAPPER (401 redirect) ====================
+    const _origFetch = window.fetch;
+    window.fetch = async function(...args) {
+      const res = await _origFetch(...args);
+      if (res.status === 401 && !args[0].includes('/api/auth/')) {
+        window.location.href = '/staff';
+      }
+      return res;
+    };
+
+    // ==================== ROLE HELPERS ====================
+    function isAdmin() { return currentUser && currentUser.role === 'admin'; }
+    function isTeamLead() { return currentUser && currentUser.role === 'team_lead'; }
+    function canAssignCases() { return isAdmin() || isTeamLead(); }
+    function isFiling() { return currentUser && currentUser.role === 'filing'; }
+    function isSales() { return currentUser && currentUser.role === 'sales'; }
+
+    // ==================== CASE TYPE GROUPING (F6) ====================
+    function getCaseTypeGrouping() {
+      const trKeywords = ['Permit', 'Visa', 'PGWP', 'Study', 'Work', 'Co-op', 'Bridging', 'Visitor'];
+      const prKeywords = ['Express Entry', 'PNP', 'Spousal', 'Citizenship', 'PR Card', 'Family', 'Sponsorship'];
+      const employerKeywords = ['LMIA'];
+
+      const groups = {
+        'Temporary Resident (TR)': [],
+        'Permanent Resident (PR)': [],
+        'Employer Services': [],
+        'Other': []
+      };
+
+      caseTypes.forEach(ct => {
+        const name = ct.name || '';
+        if (employerKeywords.some(k => name.includes(k))) {
+          groups['Employer Services'].push(ct);
+        } else if (prKeywords.some(k => name.includes(k))) {
+          groups['Permanent Resident (PR)'].push(ct);
+        } else if (trKeywords.some(k => name.includes(k))) {
+          groups['Temporary Resident (TR)'].push(ct);
+        } else {
+          groups['Other'].push(ct);
+        }
+      });
+
+      return groups;
+    }
+
+    function buildCaseTypeOptions() {
+      const groups = getCaseTypeGrouping();
+      let html = '<option value="">Select...</option>';
+      for (const [label, types] of Object.entries(groups)) {
+        if (types.length === 0) continue;
+        html += `<optgroup label="${esc(label)}">`;
+        types.forEach(ct => {
+          html += `<option value="${ct.id}">${esc(ct.name)}</option>`;
+        });
+        html += '</optgroup>';
+      }
+      return html;
+    }
+
+    function buildSidebar() {
+      const role = currentUser.role;
+      const roleLabels = { admin: 'Admin / Manager', team_lead: 'Team Lead', filing: 'Team Member', sales: 'Counsellor' };
+      document.getElementById('currentRole').textContent = roleLabels[role] || role;
+
+      let nav = '';
+      nav += `<div class="nav-item active" onclick="showView('dashboard')"><span class="icon">📊</span><span>Dashboard</span></div>`;
+
+      if (role !== 'sales') {
+        nav += `<div class="nav-item" onclick="showView('my-files')"><span class="icon">📋</span><span>My Files</span></div>`;
+      }
+
+      nav += `<div class="nav-item" onclick="showView('cases')"><span class="icon">📁</span><span>${isSales() ? 'My Cases' : 'All Cases'}</span></div>`;
+
+      if (canAssignCases()) {
+        nav += `<div class="nav-item" onclick="showView('queue')"><span class="icon">📥</span><span>Assignment Queue</span><span class="badge-count" id="queueCount" style="display:none;"></span></div>`;
+      }
+
+      nav += `<div class="nav-section">Operations</div>`;
+      nav += `<div class="nav-item" onclick="showView('kt-form')"><span class="icon">+</span><span>New Case</span></div>`;
+
+      if (!isFiling()) {
+        nav += `<div class="nav-item" onclick="showView('finance')"><span class="icon">💰</span><span>Finance</span></div>`;
+      }
+
+      if (isAdmin()) {
+        nav += `<div class="nav-item" onclick="showView('statistics')"><span class="icon">📈</span><span>Statistics</span></div>`;
+      }
+
+      if (isAdmin()) {
+        nav += `<div class="nav-section">Admin</div>`;
+        nav += `<div class="nav-item" onclick="showView('team')"><span class="icon">👥</span><span>Team</span></div>`;
+        nav += `<div class="nav-item" onclick="showView('sla-config')"><span class="icon">⏱️</span><span>SLA Config</span></div>`;
+      }
+
+      document.getElementById('sidebarNav').innerHTML = nav;
+    }
+
+    // ==================== INIT (F3 fix) ====================
     async function init() {
       try {
         const res = await fetch('/api/auth/me');
@@ -681,239 +781,1064 @@
         const data = await res.json();
         currentUser = data.user;
         document.getElementById('currentUser').textContent = currentUser.full_name;
+        buildSidebar();
         await Promise.all([loadCaseTypes(), loadUsers()]);
+        populateFilters();
+
+        // Show admin-only UI elements
+        if (isAdmin()) {
+          const showDeletedToggle = document.getElementById('showDeletedToggle');
+          if (showDeletedToggle) showDeletedToggle.style.display = '';
+          const deleteColHeader = document.getElementById('deleteColHeader');
+          if (deleteColHeader) deleteColHeader.style.display = '';
+        }
+
         await loadDashboard();
         await loadCases();
-      } catch (e) {
-        window.location.href = '/staff';
+        pollNotifications();
+        setInterval(pollNotifications, 30000);
+
+        // F3: Restore last view from session storage, but not case-detail
+        const lastView = sessionStorage.getItem('lastView');
+        if (lastView && lastView !== 'case-detail') {
+          showView(lastView);
+        }
+      } catch (e) { window.location.href = '/staff'; }
+    }
+
+    async function loadCaseTypes() { caseTypes = await (await fetch('/api/case-types')).json(); }
+    async function loadUsers() { allUsers = await (await fetch('/api/users')).json(); }
+
+    function populateFilters() {
+      const ctSelect = document.getElementById('filterCaseType');
+      if (ctSelect) {
+        ctSelect.innerHTML = '<option value="">All Case Types</option>' +
+          caseTypes.map(ct => `<option value="${ct.id}">${esc(ct.name)}</option>`).join('');
+      }
+      const cbSelect = document.getElementById('filterCreatedBy');
+      if (cbSelect) {
+        const creators = allUsers.filter(u => ['sales','admin','team_lead'].includes(u.role));
+        cbSelect.innerHTML = '<option value="">All Sales Staff</option>' +
+          creators.map(u => `<option value="${u.id}">${esc(u.full_name)}</option>`).join('');
+      }
+      const atSelect = document.getElementById('filterAssignedTo');
+      if (atSelect) {
+        const assignees = allUsers.filter(u => ['filing','team_lead','admin'].includes(u.role));
+        atSelect.innerHTML = '<option value="">All Filing Staff</option>' +
+          assignees.map(u => `<option value="${u.id}">${esc(u.full_name)}</option>`).join('');
       }
     }
 
-    // ==================== DATA LOADING ====================
-    async function loadCaseTypes() {
-      const res = await fetch('/api/case-types');
-      caseTypes = await res.json();
-      const select = document.getElementById('kt_case_type');
-      select.innerHTML = '<option value="">Select case type...</option>' + caseTypes.map(ct => `<option value="${ct.id}">${ct.name}</option>`).join('');
-    }
-
-    async function loadUsers() {
-      const res = await fetch('/api/users');
-      allUsers = await res.json();
-      const select = document.getElementById('kt_assigned_to');
-      select.innerHTML = '<option value="">Unassigned</option>' + allUsers.map(u => `<option value="${u.id}">${u.full_name} (${u.role})</option>`).join('');
-    }
-
+    // ==================== DASHBOARD (F4: workload for all, leaderboards, stale cases) ====================
     async function loadDashboard() {
-      const res = await fetch('/api/stats');
-      const stats = await res.json();
-      document.getElementById('statsRow').innerHTML = `
+      try {
+      const stats = await (await fetch('/api/stats')).json();
+      let statsHtml = `
         <div class="stat-card"><div class="label">Total Cases</div><div class="value">${stats.cases.total}</div></div>
-        <div class="stat-card"><div class="label">Active Cases</div><div class="value">${stats.cases.active}</div><div class="detail">Collecting documents</div></div>
-        <div class="stat-card success"><div class="label">Docs Complete</div><div class="value">${stats.cases.complete}</div><div class="detail">Ready for packaging</div></div>
-        <div class="stat-card warning"><div class="label">On Hold</div><div class="value">${stats.cases.on_hold}</div></div>
-        <div class="stat-card"><div class="label">Pending Documents</div><div class="value">${stats.documents.pending}</div><div class="detail">Across all cases</div></div>
-        <div class="stat-card warning"><div class="label">Awaiting Review</div><div class="value">${stats.documents.uploaded}</div><div class="detail">Submitted by clients</div></div>
+        <div class="stat-card"><div class="label">New / Unassigned</div><div class="value">${stats.stages.new}</div></div>
+        <div class="stat-card"><div class="label">In Progress</div><div class="value">${stats.stages.in_progress + stats.stages.assigned}</div></div>
+        <div class="stat-card warning"><div class="label">Awaiting Review</div><div class="value">${stats.documents.uploaded}</div><div class="detail">docs from clients</div></div>
+        <div class="stat-card danger"><div class="label">High Priority</div><div class="value">${stats.priority.high}</div></div>
+        <div class="stat-card ${stats.overdue > 0 ? 'danger' : 'success'}"><div class="label">Overdue (SLA)</div><div class="value">${stats.overdue}</div></div>
       `;
-      document.getElementById('recentActivity').innerHTML = stats.recentActivity.length === 0 ?
-        '<p style="color:var(--text-secondary);font-size:13px;">No activity yet. Create your first case to get started.</p>' :
-        stats.recentActivity.map(a => `
-          <div class="activity-item">
-            <div class="activity-dot"></div>
-            <div>
-              <div>${a.client_name ? `<strong>${a.client_name}</strong> — ` : ''}${a.details || a.action}</div>
-              <div class="activity-time">${a.performed_by} · ${formatDate(a.created_at)}</div>
-            </div>
-          </div>
-        `).join('');
+      if (stats.finance) {
+        statsHtml += `
+          <div class="stat-card success"><div class="label">Revenue</div><div class="value">$${stats.finance.total_paid.toLocaleString()}</div><div class="detail">of $${stats.finance.total_fees.toLocaleString()} total</div></div>
+          <div class="stat-card ${stats.finance.total_due > 0 ? 'warning' : 'success'}"><div class="label">Outstanding</div><div class="value">$${stats.finance.total_due.toLocaleString()}</div></div>
+        `;
+      }
+      document.getElementById('statsRow').innerHTML = statsHtml;
+
+      if (canAssignCases()) {
+        const qBadge = document.getElementById('queueCount');
+        if (qBadge) {
+          const queueCount = stats.stages.new;
+          if (queueCount > 0) {
+            qBadge.textContent = queueCount;
+            qBadge.style.display = '';
+            qBadge.classList.add('pulse');
+          } else {
+            qBadge.style.display = 'none';
+            qBadge.classList.remove('pulse');
+          }
+        }
+      }
+
+      // F4: Staff Workload visible to ALL roles (removed canAssignCases check)
+      try {
+        const workload = await (await fetch('/api/workload')).json();
+        workload.sort((a, b) => (b.active_cases || 0) - (a.active_cases || 0));
+        document.getElementById('workloadContent').innerHTML = workload.length === 0 ?
+          '<p style="color:var(--text-secondary);font-size:12px;">No staff members yet.</p>' :
+          `<table><thead><tr><th>Staff</th><th>Role</th><th>Active</th><th>High</th><th>Overdue</th></tr></thead><tbody>` +
+          workload.map(w => `<tr>
+            <td><strong>${esc(w.full_name)}</strong></td>
+            <td><span class="badge badge-active">${esc(w.role)}</span></td>
+            <td>${w.active_cases || 0}</td>
+            <td>${w.high_priority > 0 ? `<span style="color:var(--danger);font-weight:600;">${w.high_priority}</span>` : '0'}</td>
+            <td>${w.overdue > 0 ? `<span style="color:var(--danger);font-weight:600;">${w.overdue}</span>` : '0'}</td>
+          </tr>`).join('') + `</tbody></table>`;
+      } catch(e) {
+        document.getElementById('workloadContent').innerHTML = '<p style="color:var(--text-secondary);font-size:12px;">Unable to load workload data.</p>';
+      }
+
+      // F4: Leaderboards replace Recent Activity
+      loadLeaderboards();
+
+      // F4 / E2: Stale cases for admin/team_lead
+      if (isAdmin() || isTeamLead()) {
+        loadStaleCases();
+      } else {
+        document.getElementById('staleCasesWidget').innerHTML = '';
+      }
+
+      // My Tasks widget
+      try {
+        const myTasks = await (await fetch('/api/tasks/my')).json();
+        const taskWidget = document.getElementById('myTasksWidget');
+        if (myTasks.length === 0) {
+          taskWidget.innerHTML = '<p style="color:var(--text-secondary);font-size:12px;text-align:center;padding:12px;">No tasks assigned to you.</p>';
+        } else {
+          taskWidget.innerHTML = myTasks.slice(0, 5).map(t => {
+            const overdue = !t.is_completed && t.due_date && new Date(t.due_date) < new Date();
+            return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);${t.is_completed ? 'opacity:0.5;' : ''}">
+              <input type="checkbox" ${t.is_completed ? 'checked' : ''} onchange="toggleTaskFromWidget(${t.id},this.checked)" style="width:16px;height:16px;cursor:pointer;">
+              <div style="flex:1;">
+                <div style="font-size:12px;${t.is_completed ? 'text-decoration:line-through;' : ''}">${esc(t.title)}</div>
+                <div style="font-size:10px;color:${overdue ? 'var(--danger)' : 'var(--text-secondary)'};">${t.client_name ? esc(t.client_name) + ' · ' : ''}${t.due_date ? (overdue ? 'Overdue: ' : 'Due: ') + t.due_date : 'No due date'}</div>
+              </div>
+            </div>`;
+          }).join('') + (myTasks.length > 5 ? `<p style="text-align:center;font-size:11px;color:var(--text-secondary);padding:8px 0;">+ ${myTasks.length - 5} more tasks</p>` : '');
+        }
+      } catch(e) {
+        document.getElementById('myTasksWidget').innerHTML = '<p style="color:var(--text-secondary);font-size:12px;">Unable to load tasks.</p>';
+      }
+      } catch(e) { showError('statsRow', 'Failed to load dashboard data'); }
     }
 
+    // F4 / E1: Leaderboards
+    async function loadLeaderboards() {
+      const salesPeriod = document.getElementById('salesLeaderboardPeriod')?.value || 'current_month';
+      const filingPeriod = document.getElementById('filingLeaderboardPeriod')?.value || 'current_month';
+
+      // Sales leaderboard
+      try {
+        const data = await (await fetch(`/api/leaderboard?period=${salesPeriod}`)).json();
+        const sales = (data.sales || []);
+        document.getElementById('salesLeaderboard').innerHTML = sales.length === 0 ?
+          '<p style="color:var(--text-secondary);font-size:12px;">No data for this period.</p>' :
+          `<table><thead><tr><th>#</th><th>Name</th><th>Cases</th><th>Revenue</th></tr></thead><tbody>` +
+          sales.map((s, i) => {
+            const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+            return `<tr>
+              <td><span class="leaderboard-rank ${rankClass}">${i+1}</span></td>
+              <td><strong>${esc(s.full_name)}</strong></td>
+              <td>${s.cases_created || 0}</td>
+              <td style="font-weight:600;">$${(s.revenue || 0).toLocaleString()}</td>
+            </tr>`;
+          }).join('') + `</tbody></table>`;
+      } catch(e) {
+        document.getElementById('salesLeaderboard').innerHTML = '<p style="color:var(--text-secondary);font-size:12px;">Unable to load leaderboard.</p>';
+      }
+
+      // Filing leaderboard
+      try {
+        const data = await (await fetch(`/api/leaderboard?period=${filingPeriod}`)).json();
+        const filing = (data.filing || []);
+        document.getElementById('filingLeaderboard').innerHTML = filing.length === 0 ?
+          '<p style="color:var(--text-secondary);font-size:12px;">No data for this period.</p>' :
+          `<table><thead><tr><th>#</th><th>Name</th><th>Cases</th><th>Points</th></tr></thead><tbody>` +
+          filing.map((s, i) => {
+            const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+            return `<tr>
+              <td><span class="leaderboard-rank ${rankClass}">${i+1}</span></td>
+              <td><strong>${esc(s.full_name)}</strong></td>
+              <td>${s.cases_completed || 0}</td>
+              <td style="font-weight:600;">${s.total_points || 0}</td>
+            </tr>`;
+          }).join('') + `</tbody></table>`;
+      } catch(e) {
+        document.getElementById('filingLeaderboard').innerHTML = '<p style="color:var(--text-secondary);font-size:12px;">Unable to load leaderboard.</p>';
+      }
+    }
+
+    // E2: Stale cases
+    async function loadStaleCases() {
+      try {
+        const data = await (await fetch('/api/cases/stale')).json();
+        const staleCases = Array.isArray(data) ? data : (data.cases || []);
+        const widget = document.getElementById('staleCasesWidget');
+        if (staleCases.length === 0) {
+          widget.innerHTML = '';
+          return;
+        }
+        widget.innerHTML = `<div class="stale-warning">
+          <h4>Stale Cases (${staleCases.length})</h4>
+          ${staleCases.slice(0, 5).map(c => `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #fecaca;">
+            <div><strong style="cursor:pointer;" onclick="openCaseDetail(${c.id})">${esc(c.client_name)}</strong> — ${esc(c.case_type_name || '')} · <span class="badge badge-${c.stage}">${fmtStatus(c.stage)}</span></div>
+            <div style="color:var(--text-secondary);font-size:11px;">${c.days_stale ? c.days_stale + 'd no activity' : 'Stale'}</div>
+          </div>`).join('')}
+          ${staleCases.length > 5 ? `<p style="font-size:11px;color:var(--text-secondary);margin-top:6px;">+ ${staleCases.length - 5} more stale cases</p>` : ''}
+        </div>`;
+      } catch(e) {
+        document.getElementById('staleCasesWidget').innerHTML = '';
+      }
+    }
+
+    // ==================== MY FILES (F9: tab-based) ====================
+    async function loadMyFiles() {
+      showLoading('myFilesContent');
+      try {
+        const showAssigned = !isSales();
+        const showCreated = !isFiling();
+
+        myFilesData = { assigned: [], created: [] };
+
+        if (showAssigned) {
+          try {
+            myFilesData.assigned = await (await fetch('/api/cases/my')).json();
+          } catch(e) {}
+        }
+        if (showCreated) {
+          try {
+            const data = await (await fetch('/api/cases/my-sales-finance')).json();
+            myFilesData.created = data.cases || [];
+          } catch(e) {}
+        }
+
+        // Build tab bar
+        const tabBar = document.getElementById('myFilesTabBar');
+        let tabs = [];
+        if (showAssigned) {
+          tabs.push({ key: 'active', label: 'Active' });
+          tabs.push({ key: 'submitted', label: 'Submitted' });
+        }
+        if (showCreated) {
+          tabs.push({ key: 'created', label: 'Created' });
+        }
+        tabs.push({ key: 'all', label: 'All' });
+
+        tabBar.innerHTML = tabs.map((t, i) => {
+          const isActive = (currentMyFilesTab === t.key) || (i === 0 && !tabs.find(x => x.key === currentMyFilesTab));
+          return `<button class="tab-btn ${isActive ? 'active' : ''}" onclick="switchMyFilesTab('${t.key}',this)">${t.label}</button>`;
+        }).join('');
+
+        // If current tab not in available tabs, reset
+        if (!tabs.find(t => t.key === currentMyFilesTab)) {
+          currentMyFilesTab = tabs[0]?.key || 'all';
+        }
+
+        renderMyFilesTab();
+      } catch(e) { showError('myFilesContent', 'Failed to load your files'); }
+    }
+
+    function switchMyFilesTab(tabKey, btn) {
+      currentMyFilesTab = tabKey;
+      document.querySelectorAll('#myFilesTabBar .tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderMyFilesTab();
+    }
+
+    function renderMyFilesTab() {
+      const activeStages = ['assigned', 'in_progress', 'docs_complete', 'filing'];
+      const submittedStages = ['submitted', 'in_process'];
+      let cases = [];
+
+      if (currentMyFilesTab === 'active') {
+        cases = myFilesData.assigned.filter(c => activeStages.includes(c.stage));
+      } else if (currentMyFilesTab === 'submitted') {
+        cases = myFilesData.assigned.filter(c => submittedStages.includes(c.stage));
+      } else if (currentMyFilesTab === 'created') {
+        cases = myFilesData.created;
+      } else {
+        // 'all' — combine assigned + created, dedup by id
+        const seen = new Set();
+        const all = [];
+        [...myFilesData.assigned, ...myFilesData.created].forEach(c => {
+          if (!seen.has(c.id)) { seen.add(c.id); all.push(c); }
+        });
+        cases = all;
+      }
+
+      if (cases.length === 0) {
+        document.getElementById('myFilesContent').innerHTML = '<div class="card"><div class="card-body"><p style="text-align:center;color:var(--text-secondary);padding:24px;">No cases in this view.</p></div></div>';
+        return;
+      }
+
+      // E3: Show advance button for active tab
+      const showAdvance = (currentMyFilesTab === 'active');
+
+      document.getElementById('myFilesContent').innerHTML = cases.map(c => {
+        const progress = c.total_docs > 0 ? Math.round(((c.accepted_docs || 0) / c.total_docs) * 100) : 0;
+        const sla = getSlaTag(c);
+        const bal = parseFloat(c.balance_due) || 0;
+        const nextStageMap = { assigned: 'in_progress', in_progress: 'docs_complete', docs_complete: 'filing', filing: 'submitted' };
+        const nextStage = nextStageMap[c.stage];
+
+        return `<div class="card" style="cursor:pointer;" onclick="openCaseDetail(${c.id})">
+          <div class="card-body" style="display:flex;align-items:center;gap:16px;">
+            <span class="priority-dot ${c.priority || 'medium'}"></span>
+            <div style="flex:1;">
+              <div style="font-size:14px;font-weight:600;">${esc(c.client_name)}</div>
+              <div style="font-size:11px;color:var(--text-secondary);">${esc(c.case_type_name || '')} · <span class="badge badge-${c.stage}">${fmtStatus(c.stage)}</span> ${sla}</div>
+            </div>
+            ${c.total_docs !== undefined ? `<div style="text-align:right;min-width:100px;">
+              <div style="font-size:11px;color:var(--text-secondary);">Docs: ${c.accepted_docs || 0}/${c.total_docs}</div>
+              <div class="progress-bar" style="margin-top:4px;"><div class="fill ${progress>=100?'green':progress>=50?'yellow':'red'}" style="width:${progress}%"></div></div>
+            </div>` : ''}
+            <div style="text-align:right;min-width:80px;">
+              <div style="font-size:11px;color:var(--text-secondary);">Balance</div>
+              <div style="font-size:13px;font-weight:600;color:${bal > 0 ? 'var(--danger)' : 'var(--success)'};">$${bal.toFixed(0)}</div>
+            </div>
+            ${showAdvance && nextStage ? `<button class="btn-advance" onclick="event.stopPropagation();advanceStage(${c.id},'${nextStage}')" title="Advance to ${fmtStatus(nextStage)}">→</button>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // E3: Quick stage advance
+    async function advanceStage(caseId, nextStage) {
+      try {
+        await fetch(`/api/cases/${caseId}/stage`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ stage: nextStage }) });
+        toast(`Advanced to ${fmtStatus(nextStage)}`, 'success');
+        loadMyFiles();
+        loadCases();
+        loadDashboard();
+      } catch(e) {
+        toast('Failed to advance stage', 'error');
+      }
+    }
+
+    // ==================== ALL CASES (F10: renamed columns) ====================
     async function loadCases() {
-      const res = await fetch('/api/cases');
-      allCases = await res.json();
-      renderCases();
+      try {
+        const showDeleted = isAdmin() && document.getElementById('showDeletedCheck')?.checked;
+        const url = showDeleted ? '/api/cases?show_deleted=1' : '/api/cases';
+        const res = await fetch(url);
+        allCases = await res.json();
+        renderCases();
+      } catch(e) { showError('casesTableBody', 'Failed to load cases'); }
     }
 
     function renderCases() {
       const search = document.getElementById('searchCases')?.value?.toLowerCase() || '';
-      const status = document.getElementById('filterStatus')?.value || '';
+      const stage = document.getElementById('filterStage')?.value || '';
+      const priority = document.getElementById('filterPriority')?.value || '';
+      const caseTypeFilter = document.getElementById('filterCaseType')?.value || '';
+      const createdByFilter = document.getElementById('filterCreatedBy')?.value || '';
+      const assignedToFilter = document.getElementById('filterAssignedTo')?.value || '';
+
       let filtered = allCases;
       if (search) filtered = filtered.filter(c => c.client_name.toLowerCase().includes(search));
-      if (status) filtered = filtered.filter(c => c.status === status);
+      if (stage) filtered = filtered.filter(c => c.stage === stage);
+      if (priority) filtered = filtered.filter(c => c.priority === priority);
+      if (caseTypeFilter) filtered = filtered.filter(c => String(c.case_type_id) === caseTypeFilter);
+      if (createdByFilter) filtered = filtered.filter(c => String(c.created_by) === createdByFilter);
+      if (assignedToFilter) filtered = filtered.filter(c => String(c.assigned_to) === assignedToFilter);
+
+      // F7: Delete column only for admin
+      const showDeleteCol = isAdmin();
 
       document.getElementById('casesTableBody').innerHTML = filtered.length === 0 ?
-        '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:32px;">No cases found. Click "New Case" to create one.</td></tr>' :
+        `<tr><td colspan="${showDeleteCol ? 10 : 9}" style="text-align:center;color:var(--text-secondary);padding:24px;">No cases found.</td></tr>` :
         filtered.map(c => {
           const progress = c.total_docs > 0 ? Math.round((c.accepted_docs / c.total_docs) * 100) : 0;
-          const barColor = progress >= 100 ? 'green' : progress >= 50 ? 'yellow' : 'red';
-          return `<tr style="cursor:pointer" onclick="openCaseDetail(${c.id})">
-            <td><strong>${esc(c.client_name)}</strong><br><span style="font-size:11px;color:var(--text-secondary);">${c.client_email || ''}</span></td>
-            <td style="font-size:12px;">${esc(c.case_type_name)}</td>
-            <td>${c.assigned_to_name || '<span style="color:var(--text-secondary);">Unassigned</span>'}</td>
-            <td><span class="badge badge-${c.status}">${formatStatus(c.status)}</span></td>
-            <td style="min-width:120px;">
-              <div class="progress-bar"><div class="fill ${barColor}" style="width:${progress}%"></div></div>
-              <span style="font-size:11px;color:var(--text-secondary);">${c.accepted_docs}/${c.total_docs} accepted</span>
-            </td>
-            <td style="font-size:12px;">${formatDate(c.created_at)}</td>
-            <td><button class="btn btn-outline btn-xs" onclick="event.stopPropagation();openCaseDetail(${c.id})">View</button></td>
+          const sla = getSlaTag(c);
+          const bal = parseFloat(c.balance_due) || 0;
+          const isDeleted = !!c.deleted_at;
+          return `<tr style="cursor:pointer" class="${isDeleted ? 'row-deleted' : ''}" onclick="openCaseDetail(${c.id})">
+            <td><span class="priority-dot ${c.priority || 'medium'}"></span></td>
+            <td><strong>${esc(c.client_name)}</strong><br><span style="font-size:10px;color:var(--text-secondary);">${esc(c.client_email || '')}</span></td>
+            <td style="font-size:11px;">${esc(c.case_type_name)}</td>
+            <td>${esc(c.assigned_to_name || '—')}</td>
+            <td>${esc(c.created_by_name || '—')}</td>
+            <td><span class="badge badge-${c.stage || 'new'}">${fmtStatus(c.stage || 'new')}</span></td>
+            <td>${sla}</td>
+            <td style="font-size:11px;font-weight:600;color:${bal > 0 ? 'var(--danger)' : 'var(--success)'};">$${bal.toFixed(0)}</td>
+            <td style="font-size:11px;">${fmtDate(c.created_at)}</td>
+            ${showDeleteCol ? `<td onclick="event.stopPropagation();">${isDeleted ?
+              `<button class="btn btn-xs btn-outline" onclick="restoreCase(${c.id})">Restore</button>` :
+              `<button class="btn-trash" onclick="softDeleteCase(${c.id})" title="Delete case">🗑</button>`
+            }</td>` : ''}
           </tr>`;
         }).join('');
     }
 
-    // ==================== CASE DETAIL ====================
+    // ==================== CASE DELETION ====================
+    async function softDeleteCase(id) {
+      if (!confirm('Are you sure you want to delete this case? It can be restored later.')) return;
+      await fetch(`/api/cases/${id}/delete`, { method: 'PUT' });
+      toast('Case deleted', 'success');
+      loadCases();
+      loadDashboard();
+    }
+    async function restoreCase(id) {
+      await fetch(`/api/cases/${id}/restore`, { method: 'PUT' });
+      toast('Case restored', 'success');
+      loadCases();
+      loadDashboard();
+    }
+
+    // ==================== ASSIGNMENT QUEUE ====================
+    async function loadQueue() {
+      showLoading('queueContent');
+      try {
+      const cases = await (await fetch('/api/cases/queue')).json();
+      if (cases.length === 0) {
+        document.getElementById('queueContent').innerHTML = '<div class="card"><div class="card-body"><p style="text-align:center;color:var(--text-secondary);padding:24px;">No cases in the queue. All cases are assigned.</p></div></div>';
+        return;
+      }
+      document.getElementById('queueContent').innerHTML = `<div class="card"><table>
+        <thead><tr><th></th><th>Client</th><th>Case Type</th><th>Created By</th><th>Created</th><th>Action</th></tr></thead>
+        <tbody>${cases.map(c => `<tr>
+          <td><span class="priority-dot ${c.priority || 'medium'}"></span></td>
+          <td><strong>${esc(c.client_name)}</strong></td>
+          <td style="font-size:11px;">${esc(c.case_type_name)}</td>
+          <td>${esc(c.created_by_name || '—')}</td>
+          <td style="font-size:11px;">${fmtDate(c.created_at)}</td>
+          <td><button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openAssignModal(${c.id})">Assign</button></td>
+        </tr>`).join('')}</tbody></table></div>`;
+      } catch(e) { showError('queueContent', 'Failed to load assignment queue'); }
+    }
+
+    function openAssignModal(caseId) {
+      currentCaseId = caseId;
+      const select = document.getElementById('assign_to');
+      select.innerHTML = '<option value="">Select staff member...</option>' +
+        allUsers.filter(u => u.role === 'filing' || u.role === 'admin' || u.role === 'team_lead').map(u => `<option value="${u.id}">${esc(u.full_name)} (${u.role})</option>`).join('');
+      openModal('assignModal');
+    }
+
+    // F1: After assignment, stay on page (don't open case detail)
+    async function submitAssign() {
+      const assigned_to = document.getElementById('assign_to').value;
+      if (!assigned_to) { toast('Please select a staff member', 'error'); return; }
+      await fetch(`/api/cases/${currentCaseId}/assign`, {
+        method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ assigned_to })
+      });
+      toast('Case assigned', 'success');
+      closeModal('assignModal');
+      loadQueue(); loadCases(); loadDashboard();
+    }
+
+    // ==================== CASE DETAIL (F5: finance for creators, F7: no delete button) ====================
     async function openCaseDetail(id) {
       currentCaseId = id;
-      const res = await fetch(`/api/cases/${id}`);
-      const c = await res.json();
+      showLoading('caseDetailContent');
+      showView('case-detail');
+      try {
+      const c = await (await fetch(`/api/cases/${id}`)).json();
+      const balance = await (await fetch(`/api/cases/${id}/balance`)).json();
 
       document.getElementById('caseDetailTitle').textContent = c.client_name;
+
+      // F7: Remove delete button from case detail entirely
+      document.getElementById('caseDetailActions').innerHTML = '';
+
       const progress = c.documents.length > 0 ? Math.round((c.documents.filter(d => d.status === 'accepted').length / c.documents.length) * 100) : 0;
       const clientLink = `${window.location.origin}/portal/${c.client_token}`;
+      const sla = getSlaTag(c);
 
-      // Group docs by category
       const categories = {};
-      c.documents.forEach(d => {
-        if (!categories[d.category]) categories[d.category] = [];
-        categories[d.category].push(d);
-      });
+      c.documents.forEach(d => { if (!categories[d.category]) categories[d.category] = []; categories[d.category].push(d); });
+
+      // Parse KT data and client data for tabs
+      let ktData = null;
+      try { ktData = c.kt_data ? (typeof c.kt_data === 'string' ? JSON.parse(c.kt_data) : c.kt_data) : null; } catch(e) { ktData = null; }
+      let clientData = null;
+      try { clientData = c.client_data ? (typeof c.client_data === 'string' ? JSON.parse(c.client_data) : c.client_data) : null; } catch(e) { clientData = null; }
+
+      // Build Case Summary tab from c.notes, c.service_details
+      let caseSummaryHtml = '';
+      caseSummaryHtml += '<div class="kt-summary-section">';
+      caseSummaryHtml += '<h4>Case Details</h4>';
+      caseSummaryHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Created By</div><div class="kt-summary-value">${esc(c.created_by_name || '—')} on ${fmtDate(c.created_at)}</div></div>`;
+      caseSummaryHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Client Email</div><div class="kt-summary-value">${esc(c.client_email || '—')}</div></div>`;
+      caseSummaryHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Client Phone</div><div class="kt-summary-value">${esc(c.client_phone || '—')}</div></div>`;
+      caseSummaryHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Priority</div><div class="kt-summary-value"><span class="badge badge-${c.priority || 'medium'}">${fmtStatus(c.priority || 'medium')}</span></div></div>`;
+      if (c.service_details) caseSummaryHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Service Details</div><div class="kt-summary-value">${esc(c.service_details)}</div></div>`;
+      if (c.notes) caseSummaryHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Notes for Filing Team</div><div class="kt-summary-value">${esc(c.notes)}</div></div>`;
+      if (c.urgency_reason) caseSummaryHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Urgency Reason</div><div class="kt-summary-value">${esc(c.urgency_reason)}</div></div>`;
+      if (c.deadline) caseSummaryHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Deadline</div><div class="kt-summary-value">${fmtDate(c.deadline)}</div></div>`;
+      caseSummaryHtml += '</div>';
+
+      // Also show kt_data if present (backward compatibility)
+      if (ktData && Object.keys(ktData).length > 0) {
+        caseSummaryHtml += '<div class="kt-summary-section">';
+        caseSummaryHtml += '<h4>Additional KT Data</h4>';
+        if (ktData.service_details) caseSummaryHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Service Details</div><div class="kt-summary-value">${esc(ktData.service_details)}</div></div>`;
+        if (ktData.notes) caseSummaryHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Notes</div><div class="kt-summary-value">${esc(ktData.notes)}</div></div>`;
+        if (ktData.priority) caseSummaryHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Priority</div><div class="kt-summary-value"><span class="badge badge-${ktData.priority}">${fmtStatus(ktData.priority)}</span></div></div>`;
+        if (ktData.urgency) caseSummaryHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Urgency</div><div class="kt-summary-value">${esc(ktData.urgency)}</div></div>`;
+        if (ktData.admin_extra && typeof ktData.admin_extra === 'object') {
+          if (ktData.admin_extra.processing_fee) caseSummaryHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Processing Fee</div><div class="kt-summary-value">$${esc(String(ktData.admin_extra.processing_fee))}</div></div>`;
+          if (ktData.admin_extra.application_fee) caseSummaryHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Application Fee</div><div class="kt-summary-value">$${esc(String(ktData.admin_extra.application_fee))}</div></div>`;
+          if (ktData.admin_extra.deposit) caseSummaryHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Deposit</div><div class="kt-summary-value">$${esc(String(ktData.admin_extra.deposit))}</div></div>`;
+          if (ktData.admin_extra.payment_notes) caseSummaryHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Payment Notes</div><div class="kt-summary-value">${esc(ktData.admin_extra.payment_notes)}</div></div>`;
+        }
+        const skipKeys = ['service_details','notes','priority','urgency','admin_extra'];
+        const extraKeys = Object.keys(ktData).filter(k => !skipKeys.includes(k) && ktData[k]);
+        if (extraKeys.length > 0) {
+          extraKeys.forEach(k => {
+            const val = typeof ktData[k] === 'object' ? JSON.stringify(ktData[k]) : String(ktData[k]);
+            caseSummaryHtml += `<div class="kt-summary-row"><div class="kt-summary-label">${esc(fmtStatus(k))}</div><div class="kt-summary-value">${esc(val)}</div></div>`;
+          });
+        }
+        caseSummaryHtml += '</div>';
+      }
+
+      // Build Client Info tab content
+      let clientInfoHtml = '';
+      if (clientData && Object.keys(clientData).length > 0) {
+        clientInfoHtml += '<div class="kt-summary-section"><h4>Identity</h4>';
+        clientInfoHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Full Name</div><div class="kt-summary-value">${esc(clientData.full_name || clientData.name || '—')}</div></div>`;
+        clientInfoHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Date of Birth</div><div class="kt-summary-value">${esc(clientData.dob || clientData.date_of_birth || '—')}</div></div>`;
+        clientInfoHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Citizenship</div><div class="kt-summary-value">${esc(clientData.citizenship || '—')}</div></div>`;
+        clientInfoHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Passport #</div><div class="kt-summary-value">${esc(clientData.passport_number || clientData.passport || '—')}</div></div>`;
+        clientInfoHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Passport Expiry</div><div class="kt-summary-value">${esc(clientData.passport_expiry || '—')}</div></div>`;
+        clientInfoHtml += '</div>';
+
+        clientInfoHtml += '<div class="kt-summary-section"><h4>Contact</h4>';
+        clientInfoHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Email</div><div class="kt-summary-value">${esc(clientData.email || '—')}</div></div>`;
+        clientInfoHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Phone</div><div class="kt-summary-value">${esc(clientData.phone || '—')}</div></div>`;
+        clientInfoHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Mailing Address</div><div class="kt-summary-value">${esc(clientData.mailing_address || clientData.address || '—')}</div></div>`;
+        clientInfoHtml += '</div>';
+
+        clientInfoHtml += '<div class="kt-summary-section"><h4>Immigration</h4>';
+        clientInfoHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Current Status</div><div class="kt-summary-value">${esc(clientData.current_status || clientData.immigration_status || '—')}</div></div>`;
+        clientInfoHtml += '</div>';
+
+        clientInfoHtml += '<div class="kt-summary-section"><h4>Education</h4>';
+        clientInfoHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Level</div><div class="kt-summary-value">${esc(clientData.education_level || clientData.education || '—')}</div></div>`;
+        clientInfoHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Field of Study</div><div class="kt-summary-value">${esc(clientData.field_of_study || '—')}</div></div>`;
+        clientInfoHtml += '</div>';
+
+        clientInfoHtml += '<div class="kt-summary-section"><h4>Language</h4>';
+        clientInfoHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Test Type</div><div class="kt-summary-value">${esc(clientData.language_test || clientData.language_test_type || '—')}</div></div>`;
+        const ls = clientData.language_scores || {};
+        clientInfoHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Scores (L/R/W/S)</div><div class="kt-summary-value">${esc(ls.listening || clientData.listening || '—')} / ${esc(ls.reading || clientData.reading || '—')} / ${esc(ls.writing || clientData.writing || '—')} / ${esc(ls.speaking || clientData.speaking || '—')}</div></div>`;
+        clientInfoHtml += '</div>';
+
+        clientInfoHtml += '<div class="kt-summary-section"><h4>Work</h4>';
+        clientInfoHtml += `<div class="kt-summary-row"><div class="kt-summary-label">Experience Summary</div><div class="kt-summary-value">${esc(clientData.work_experience || clientData.experience_summary || '—')}</div></div>`;
+        clientInfoHtml += '</div>';
+      } else {
+        clientInfoHtml = '<p style="color:var(--text-secondary);font-size:12px;text-align:center;padding:24px;">Client has not submitted personal information yet. Share the portal link for them to fill it in.</p>';
+      }
+
+      // Determine default active tab
+      const defaultTab = isFiling() ? 'case-summary' : 'checklist';
+
+      // F2: Finance — separate filing fees vs govt fees
+      const filingFees = balance.fees.filter(f => f.fee_type !== 'application');
+      const govtFees = balance.fees.filter(f => f.fee_type === 'application');
+      const filingFeesTotal = filingFees.reduce((sum, f) => sum + (parseFloat(f.amount) || 0), 0);
+      const govtFeesTotal = govtFees.reduce((sum, f) => sum + (parseFloat(f.amount) || 0), 0);
+      const filingBalanceDue = filingFeesTotal - balance.total_paid;
+      const totalOwedAll = balance.total_fees - balance.total_paid;
+
+      // F5: Finance tab visible to admin, team_lead, or case creator
+      const canSeeFinance = isAdmin() || isTeamLead() || c.created_by === currentUser.id;
 
       document.getElementById('caseDetailContent').innerHTML = `
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+        <!-- Case info cards -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
           <div class="card">
             <div class="card-header"><h3>Case Information</h3></div>
-            <div class="card-body">
-              <table style="font-size:13px;">
-                <tr><td style="border:0;padding:6px 12px 6px 0;font-weight:600;color:var(--text-secondary);width:120px;">Case Type</td><td style="border:0;padding:6px 0;">${esc(c.case_type_name)}</td></tr>
-                <tr><td style="border:0;padding:6px 12px 6px 0;font-weight:600;color:var(--text-secondary);">Status</td><td style="border:0;padding:6px 0;"><span class="badge badge-${c.status}">${formatStatus(c.status)}</span>
-                  <select onchange="updateCaseStatus(${c.id}, this.value)" style="margin-left:8px;padding:2px 6px;font-size:11px;border:1px solid var(--border);border-radius:4px;">
-                    <option value="">Change...</option>
-                    <option value="active">Active</option>
-                    <option value="on_hold">On Hold</option>
-                    <option value="documents_complete">Docs Complete</option>
-                    <option value="completed">Completed</option>
-                  </select>
+            <div class="card-body" style="font-size:12px;">
+              <table style="font-size:12px;">
+                <tr><td style="border:0;padding:4px 10px 4px 0;font-weight:500;color:var(--text-secondary);width:110px;">Type</td><td style="border:0;padding:4px 0;">${esc(c.case_type_name)}</td></tr>
+                <tr><td style="border:0;padding:4px 10px 4px 0;font-weight:500;color:var(--text-secondary);">Stage</td><td style="border:0;padding:4px 0;">
+                  ${isSales() ? `<span class="badge badge-${c.stage}">${fmtStatus(c.stage)}</span>` : `<select onchange="updateStage(${c.id}, this.value)" style="padding:2px 6px;font-size:11px;border:1px solid var(--border);border-radius:4px;">
+                    ${['new','assigned','in_progress','docs_complete','filing','submitted','in_process','approved','refused','withdrawn'].map(s => `<option value="${s}" ${c.stage===s?'selected':''}>${fmtStatus(s)}</option>`).join('')}
+                  </select>`}
                 </td></tr>
-                <tr><td style="border:0;padding:6px 12px 6px 0;font-weight:600;color:var(--text-secondary);">Email</td><td style="border:0;padding:6px 0;">${esc(c.client_email || '—')}</td></tr>
-                <tr><td style="border:0;padding:6px 12px 6px 0;font-weight:600;color:var(--text-secondary);">Phone</td><td style="border:0;padding:6px 0;">${esc(c.client_phone || '—')}</td></tr>
-                <tr><td style="border:0;padding:6px 12px 6px 0;font-weight:600;color:var(--text-secondary);">Assigned To</td><td style="border:0;padding:6px 0;">${esc(c.assigned_to_name || 'Unassigned')}</td></tr>
-                <tr><td style="border:0;padding:6px 12px 6px 0;font-weight:600;color:var(--text-secondary);">Deadline</td><td style="border:0;padding:6px 0;">${c.deadline || '—'}</td></tr>
-                <tr><td style="border:0;padding:6px 12px 6px 0;font-weight:600;color:var(--text-secondary);">Created</td><td style="border:0;padding:6px 0;">${formatDate(c.created_at)} by ${esc(c.created_by_name || '—')}</td></tr>
+                <tr><td style="border:0;padding:4px 10px 4px 0;font-weight:500;color:var(--text-secondary);">Priority</td><td style="border:0;padding:4px 0;">
+                  ${isSales() ? `<span class="badge badge-${c.priority}">${c.priority}</span>` : `<select onchange="updatePriority(${c.id}, this.value)" style="padding:2px 6px;font-size:11px;border:1px solid var(--border);border-radius:4px;">
+                    ${['high','medium','low'].map(p => `<option value="${p}" ${c.priority===p?'selected':''}>${p.charAt(0).toUpperCase()+p.slice(1)}</option>`).join('')}
+                  </select>`}
+                </td></tr>
+                <tr><td style="border:0;padding:4px 10px 4px 0;font-weight:500;color:var(--text-secondary);">Assigned To</td><td style="border:0;padding:4px 0;">${esc(c.assigned_to_name || 'Unassigned')} ${canAssignCases() ? `<button class="btn btn-primary btn-xs" onclick="openAssignModal(${c.id})" style="margin-left:6px;">${c.assigned_to ? 'Reassign' : 'Assign'}</button>` : ''}</td></tr>
+                <tr><td style="border:0;padding:4px 10px 4px 0;font-weight:500;color:var(--text-secondary);">SLA</td><td style="border:0;padding:4px 0;">${sla} ${c.sla_deadline ? `(${c.sla_deadline})` : ''}</td></tr>
+                <tr><td style="border:0;padding:4px 10px 4px 0;font-weight:500;color:var(--text-secondary);">App #</td><td style="border:0;padding:4px 0;">${esc(c.application_number || '—')}</td></tr>
+                <tr><td style="border:0;padding:4px 10px 4px 0;font-weight:500;color:var(--text-secondary);">Email</td><td style="border:0;padding:4px 0;">${esc(c.client_email || '—')}</td></tr>
+                <tr><td style="border:0;padding:4px 10px 4px 0;font-weight:500;color:var(--text-secondary);">Phone</td><td style="border:0;padding:4px 0;">${esc(c.client_phone || '—')}</td></tr>
+                <tr><td style="border:0;padding:4px 10px 4px 0;font-weight:500;color:var(--text-secondary);">Created</td><td style="border:0;padding:4px 0;">${fmtDate(c.created_at)} by ${esc(c.created_by_name || '—')}</td></tr>
+                <tr><td style="border:0;padding:4px 10px 4px 0;font-weight:500;color:var(--text-secondary);">CRM</td><td style="border:0;padding:4px 0;">${c.crm_added ? '<span style="color:var(--success);">Added</span>' : `<span style="color:var(--warning);">Not added</span> <button class="btn btn-xs btn-outline" onclick="markCRM(${c.id})">Mark Added</button>`}</td></tr>
               </table>
-              ${c.service_details ? `<div style="margin-top:12px;"><strong style="font-size:12px;color:var(--text-secondary);">Service Details:</strong><p style="font-size:13px;margin-top:4px;">${esc(c.service_details)}</p></div>` : ''}
-              ${c.notes ? `<div style="margin-top:12px;"><strong style="font-size:12px;color:var(--text-secondary);">Notes:</strong><p style="font-size:13px;margin-top:4px;">${esc(c.notes)}</p></div>` : ''}
+              ${c.notes ? `<div style="margin-top:8px;"><strong style="font-size:11px;color:var(--text-secondary);">Notes:</strong><p style="font-size:12px;margin-top:3px;">${esc(c.notes)}</p></div>` : ''}
             </div>
           </div>
           <div class="card">
-            <div class="card-header"><h3>Client Portal Link</h3></div>
+            <div class="card-header"><h3>Client Portal & Progress</h3></div>
             <div class="card-body">
-              <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">Share this link with the client so they can view their document checklist and track progress.</p>
+              <p style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;">Share this link with the client:</p>
               <div class="client-link-box">
-                <input type="text" value="${clientLink}" readonly id="clientLinkInput_${c.id}">
-                <button class="copy-btn" onclick="copyClientLink('clientLinkInput_${c.id}')">Copy</button>
+                <input type="text" value="${clientLink}" readonly id="clientLink_${c.id}">
+                <button class="copy-btn" onclick="copyLink('clientLink_${c.id}')">Copy</button>
               </div>
-              <div style="margin-top:16px;">
-                <div style="font-size:24px;font-weight:700;color:var(--primary);">${progress}%</div>
-                <div class="progress-bar" style="margin-top:6px;height:8px;"><div class="fill ${progress >= 100 ? 'green' : progress >= 50 ? 'yellow' : 'red'}" style="width:${progress}%"></div></div>
-                <div style="font-size:12px;color:var(--text-secondary);margin-top:6px;">
-                  ${c.documents.filter(d=>d.status==='accepted').length} accepted ·
-                  ${c.documents.filter(d=>d.status==='uploaded').length} awaiting review ·
-                  ${c.documents.filter(d=>d.status==='rejected').length} rejected ·
-                  ${c.documents.filter(d=>d.status==='pending').length} pending
-                </div>
+              <div style="margin-top:14px;">
+                <div style="font-size:22px;font-weight:600;color:var(--primary);">${progress}%</div>
+                <div class="progress-bar" style="margin-top:4px;height:6px;"><div class="fill ${progress>=100?'green':progress>=50?'yellow':'red'}" style="width:${progress}%"></div></div>
+                <div style="font-size:10px;color:var(--text-secondary);margin-top:4px;">${c.documents.filter(d=>d.status==='accepted').length} accepted · ${c.documents.filter(d=>d.status==='uploaded').length} review · ${c.documents.filter(d=>d.status==='pending').length} pending</div>
+              </div>
+              <!-- Finance snapshot -->
+              <table style="width:100%;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;">
+                <tr><td style="border:0;padding:3px 0;color:var(--text-secondary);">Filing Fees</td><td style="border:0;padding:3px 0;text-align:right;font-weight:600;">$${filingFeesTotal.toFixed(2)}</td></tr>
+                <tr><td style="border:0;padding:3px 0;color:var(--text-secondary);">Govt Fees</td><td style="border:0;padding:3px 0;text-align:right;font-weight:600;">$${govtFeesTotal.toFixed(2)}</td></tr>
+                <tr><td style="border:0;padding:3px 0;color:var(--text-secondary);">Paid</td><td style="border:0;padding:3px 0;text-align:right;font-weight:600;color:var(--success);">$${balance.total_paid.toFixed(2)}</td></tr>
+                <tr style="border-top:1px solid var(--border);"><td style="border:0;padding:6px 0 3px;color:var(--text);font-weight:600;">Balance Due</td><td style="border:0;padding:6px 0 3px;text-align:right;font-weight:700;color:${filingBalanceDue > 0 ? 'var(--danger)' : 'var(--success)'};">$${filingBalanceDue.toFixed(2)}</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-bar no-print">
+          <button class="tab-btn ${defaultTab==='case-summary'?'active':''}" onclick="switchTab('case-summary',this)">Case Summary</button>
+          <button class="tab-btn ${defaultTab==='checklist'?'active':''}" onclick="switchTab('checklist',this)">Documents (${c.documents.length})</button>
+          <button class="tab-btn" onclick="switchTab('client-info',this)">Client Info</button>
+          <button class="tab-btn" onclick="switchTab('notes',this);loadCaseNotes(${c.id})">Notes</button>
+          <button class="tab-btn" onclick="switchTab('tasks',this);loadCaseTasks(${c.id})">Tasks</button>
+          ${canSeeFinance ? `<button class="tab-btn" onclick="switchTab('finance-detail',this)">Finance</button>` : ''}
+          <button class="tab-btn" onclick="switchTab('activity-detail',this)">Activity</button>
+        </div>
+
+        <div id="tab-case-summary" class="tab-content ${defaultTab==='case-summary'?'active':''}">
+          <div class="card">
+            <div class="card-header"><h3>Case Summary</h3></div>
+            <div class="card-body">${caseSummaryHtml}</div>
+          </div>
+        </div>
+
+        <div id="tab-checklist" class="tab-content ${defaultTab==='checklist'?'active':''}">
+          <div class="card">
+            <div class="card-header"><h3>Document Checklist</h3><button class="btn btn-primary btn-sm" onclick="openAddDocModal()">+ Add</button></div>
+            <div class="card-body">
+              ${Object.keys(categories).map(cat => `
+                <div class="category-header">${esc(cat)}</div>
+                ${categories[cat].map(d => `
+                  <div class="doc-list-item">
+                    <div class="doc-info">
+                      <div class="doc-name">${esc(d.document_name)} ${d.is_required ? '<span class="required-mark">REQUIRED</span>' : ''}</div>
+                      <div class="doc-meta"><span class="badge badge-${d.status}">${fmtStatus(d.status)}</span>
+                        ${d.submitted_at ? ` · Sent: ${fmtDate(d.submitted_at)}` : ''}
+                        ${d.reviewed_at ? ` · Reviewed: ${fmtDate(d.reviewed_at)}` : ''}
+                        ${d.file_reference ? ` · <a href="${esc(d.file_reference)}" target="_blank" style="color:var(--primary-light);">View</a>` : ''}
+                      </div>
+                      ${d.status_note ? `<div class="doc-note">Staff: ${esc(d.status_note)}</div>` : ''}
+                      ${d.client_note ? `<div class="client-note">Client: ${esc(d.client_note)}</div>` : ''}
+                    </div>
+                    <div class="doc-actions">
+                      <button class="btn btn-outline btn-xs" onclick="openDocStatusModal(${d.id},'${esc(d.document_name)}','${d.status}','${esc(d.status_note||'')}','${esc(d.file_reference||'')}')">Update</button>
+                      <button class="btn btn-xs" style="color:var(--danger);background:none;" onclick="deleteDoc(${d.id})">✕</button>
+                    </div>
+                  </div>
+                `).join('')}
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-client-info" class="tab-content">
+          <div class="card">
+            <div class="card-header"><h3>Client Information</h3></div>
+            <div class="card-body">${clientInfoHtml}</div>
+          </div>
+        </div>
+
+        <div id="tab-notes" class="tab-content"><div id="caseNotesContent"></div></div>
+        <div id="tab-tasks" class="tab-content"><div id="caseTasksContent"></div></div>
+
+        <div id="tab-finance-detail" class="tab-content">
+          <div class="card">
+            <div class="card-header"><h3>Filing Fees</h3><button class="btn btn-primary btn-sm" onclick="openFeeModal()">+ Add Fee</button></div>
+            <div class="card-body">
+              ${filingFees.length === 0 ? '<p style="color:var(--text-secondary);font-size:12px;">No filing fees recorded.</p>' :
+              `<table><thead><tr><th>Type</th><th>Amount</th><th>Description</th><th></th></tr></thead><tbody>
+              ${filingFees.map(f => `<tr><td>${esc(f.fee_type)}</td><td>$${f.amount.toFixed(2)}</td><td>${esc(f.description||'')}</td><td><button class="btn btn-outline btn-xs" onclick="openEditFeeModal(${f.id},'${esc(f.fee_type)}',${f.amount},'${esc(f.description||'')}')">Edit</button> <button class="btn btn-xs" style="color:var(--danger);background:none;" onclick="deleteFee(${f.id})">✕</button></td></tr>`).join('')}
+              <tr style="font-weight:600;"><td>Total Filing Fees</td><td>$${filingFeesTotal.toFixed(2)}</td><td></td><td></td></tr>
+              </tbody></table>`}
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Government Fees</h3><button class="btn btn-primary btn-sm" onclick="openFeeModalGovt()">+ Add Govt Fee</button></div>
+            <div class="card-body">
+              ${govtFees.length === 0 ? '<p style="color:var(--text-secondary);font-size:12px;">No government fees recorded.</p>' :
+              `<table><thead><tr><th>Type</th><th>Amount</th><th>Description</th><th></th></tr></thead><tbody>
+              ${govtFees.map(f => `<tr><td>${esc(f.fee_type)}</td><td>$${f.amount.toFixed(2)}</td><td>${esc(f.description||'')}</td><td><button class="btn btn-outline btn-xs" onclick="openEditFeeModal(${f.id},'${esc(f.fee_type)}',${f.amount},'${esc(f.description||'')}')">Edit</button> <button class="btn btn-xs" style="color:var(--danger);background:none;" onclick="deleteFee(${f.id})">✕</button></td></tr>`).join('')}
+              <tr style="font-weight:600;"><td>Total Govt Fees</td><td>$${govtFeesTotal.toFixed(2)}</td><td></td><td></td></tr>
+              </tbody></table>`}
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Payments</h3><button class="btn btn-primary btn-sm" onclick="openPaymentModal()">+ Record Payment</button></div>
+            <div class="card-body">
+              ${balance.payments.length === 0 ? '<p style="color:var(--text-secondary);font-size:12px;">No payments recorded.</p>' :
+              `<table><thead><tr><th>Date</th><th>Amount</th><th>Method</th><th>#</th><th>Notes</th><th></th></tr></thead><tbody>
+              ${balance.payments.map(p => `<tr><td>${p.payment_date}</td><td>$${p.amount.toFixed(2)}</td><td>${esc(p.payment_method||'')}</td><td>${p.installment_number||''}</td><td>${esc(p.notes||'')}</td><td><button class="btn btn-xs" style="color:var(--danger);background:none;" onclick="deletePayment(${p.id})">✕</button></td></tr>`).join('')}
+              <tr style="font-weight:600;"><td>Total Paid</td><td>$${balance.total_paid.toFixed(2)}</td><td colspan="4"></td></tr>
+              </tbody></table>`}
+              <div style="margin-top:12px;padding:10px;background:${filingBalanceDue > 0 ? '#fefce8' : '#ecfdf5'};border-radius:6px;font-size:13px;font-weight:600;">
+                Balance Due (filing fees): $${filingBalanceDue.toFixed(2)}
+              </div>
+              <div style="margin-top:6px;padding:8px 10px;background:#f8f9fb;border-radius:6px;font-size:12px;color:var(--text-secondary);">
+                Total Owed (all fees): $${totalOwedAll.toFixed(2)}
               </div>
             </div>
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-header">
-            <h3>Document Checklist (${c.documents.length} items)</h3>
-            <button class="btn btn-primary btn-sm" onclick="openAddDocModal()">➕ Add Document</button>
-          </div>
-          <div class="card-body">
-            ${Object.keys(categories).map(cat => `
-              <div class="category-header">${esc(cat)}</div>
-              ${categories[cat].map(d => `
-                <div class="doc-list-item">
-                  <div class="doc-info">
-                    <div class="doc-name">${esc(d.document_name)} ${d.is_required ? '<span class="required-mark">REQUIRED</span>' : ''}</div>
-                    <div class="doc-meta">
-                      <span class="badge badge-${d.status}">${formatStatus(d.status)}</span>
-                      ${d.submitted_at ? ` · Submitted: ${formatDate(d.submitted_at)}` : ''}
-                      ${d.reviewed_at ? ` · Reviewed: ${formatDate(d.reviewed_at)}` : ''}
-                      ${d.file_reference ? ` · <a href="${esc(d.file_reference)}" target="_blank" style="color:var(--primary-light);">View file ↗</a>` : ''}
-                    </div>
-                    ${d.status_note ? `<div class="doc-note">Staff note: ${esc(d.status_note)}</div>` : ''}
-                    ${d.client_note ? `<div class="client-note">Client note: ${esc(d.client_note)}</div>` : ''}
-                  </div>
-                  <div class="doc-actions">
-                    <button class="btn btn-outline btn-xs" onclick="openDocStatusModal(${d.id}, '${esc(d.document_name)}', '${d.status}', '${esc(d.status_note||'')}', '${esc(d.file_reference||'')}')">Update</button>
-                    <button class="btn btn-xs" style="color:var(--danger);background:none;" onclick="deleteDoc(${d.id})">✕</button>
-                  </div>
-                </div>
-              `).join('')}
-            `).join('')}
-          </div>
-        </div>
-
-        <div class="card" style="margin-top:16px;">
-          <div class="card-header"><h3>Activity Log</h3></div>
-          <div class="card-body">
-            ${(c.activity || []).map(a => `
-              <div class="activity-item">
-                <div class="activity-dot"></div>
-                <div>
-                  <div>${esc(a.details || a.action)}</div>
-                  <div class="activity-time">${a.performed_by} · ${formatDate(a.created_at)}</div>
-                </div>
-              </div>
-            `).join('') || '<p style="color:var(--text-secondary);font-size:13px;">No activity yet.</p>'}
+        <div id="tab-activity-detail" class="tab-content">
+          <div class="card">
+            <div class="card-header"><h3>Activity Log</h3></div>
+            <div class="card-body">
+              ${(c.activity||[]).map(a => `<div class="activity-item"><div class="activity-dot"></div><div><div>${esc(a.details||a.action)}</div><div class="activity-time">${esc(a.performed_by)} · ${fmtDate(a.created_at)}</div></div></div>`).join('') || '<p style="color:var(--text-secondary);font-size:12px;">No activity.</p>'}
+            </div>
           </div>
         </div>
       `;
-
-      showView('case-detail');
+      } catch(e) { showError('caseDetailContent', 'Failed to load case details'); }
     }
 
-    // ==================== ACTIONS ====================
+    // ==================== BRIEF KT FORM (F6: organized dropdown) ====================
+    function renderKTForm() {
+      const assignHtml = canAssignCases() ?
+        `<div class="form-group"><label>Assign To</label><select id="kt_assigned"><option value="">Unassigned (goes to queue)</option>${allUsers.filter(u=>u.role==='filing'||u.role==='admin'||u.role==='team_lead').map(u=>`<option value="${u.id}">${esc(u.full_name)}</option>`).join('')}</select></div>` :
+        '';
+
+      document.getElementById('ktFormContent').innerHTML = `
+        <div class="card"><div class="card-header"><h3>Client & Case Details</h3></div><div class="card-body">
+          <div class="form-row">
+            <div class="form-group"><label>Client Full Name *</label><input type="text" id="kt_name"></div>
+            <div class="form-group"><label>Case Type *</label><select id="kt_case_type">${buildCaseTypeOptions()}</select></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Email</label><input type="email" id="kt_email"></div>
+            <div class="form-group"><label>Phone</label><input type="text" id="kt_phone"></div>
+          </div>
+          <div class="form-row-3">
+            <div class="form-group"><label>Priority</label><select id="kt_priority"><option value="medium">Medium</option><option value="high">High</option><option value="low">Low</option></select></div>
+            ${assignHtml}
+            <div class="form-group"><label>Deadline</label><input type="date" id="kt_deadline"></div>
+          </div>
+        </div></div>
+
+        <div class="card"><div class="card-header"><h3>Fees</h3></div><div class="card-body">
+          <div class="form-row-3">
+            <div class="form-group"><label>Processing Fee ($)</label><input type="number" id="kt_proc_fee" step="0.01" placeholder="e.g. 300"></div>
+            <div class="form-group"><label>Application / Govt Fee ($)</label><input type="number" id="kt_app_fee" step="0.01" placeholder="e.g. 255"></div>
+            <div class="form-group"><label>Deposit Paid ($)</label><input type="number" id="kt_deposit" step="0.01" placeholder="e.g. 300"></div>
+          </div>
+          <div class="form-group"><label>Payment Notes</label><input type="text" id="kt_pay_notes" placeholder="e.g. Balance due on filing, paid from card, etc."></div>
+        </div></div>
+
+        <div class="card"><div class="card-header"><h3>Notes for Filing Team</h3></div><div class="card-body">
+          <div class="form-group"><label>Notes / Special Instructions</label><textarea id="kt_notes" rows="4" placeholder="Important details, special circumstances, client preferences..."></textarea></div>
+        </div></div>
+      `;
+    }
+
     async function submitKTForm() {
-      const data = {
-        case_type_id: document.getElementById('kt_case_type').value,
-        client_name: document.getElementById('kt_client_name').value,
+      const name = document.getElementById('kt_name').value;
+      const caseType = document.getElementById('kt_case_type').value;
+      if (!name || !caseType) { toast('Client name and case type are required', 'error'); return; }
+
+      const fees = [];
+      const procFee = parseFloat(document.getElementById('kt_proc_fee').value);
+      const appFee = parseFloat(document.getElementById('kt_app_fee').value);
+      if (procFee > 0) fees.push({ fee_type: 'processing', amount: procFee, description: 'Processing fee' });
+      if (appFee > 0) fees.push({ fee_type: 'application', amount: appFee, description: 'Application/Government fee' });
+
+      const assignedEl = document.getElementById('kt_assigned');
+      const payload = {
+        case_type_id: caseType,
+        client_name: name,
         client_email: document.getElementById('kt_email').value,
         client_phone: document.getElementById('kt_phone').value,
-        service_details: document.getElementById('kt_service_details').value,
+        priority: document.getElementById('kt_priority').value,
+        assigned_to: assignedEl ? (assignedEl.value || null) : null,
+        deadline: document.getElementById('kt_deadline').value || null,
         notes: document.getElementById('kt_notes').value,
-        deadline: document.getElementById('kt_deadline').value,
-        assigned_to: document.getElementById('kt_assigned_to').value || null,
+        service_details: document.getElementById('kt_pay_notes').value,
+        fees: fees,
       };
-      if (!data.client_name || !data.case_type_id) { toast('Please fill in client name and case type', 'error'); return; }
-      const res = await fetch('/api/cases', {
-        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
-      });
+
+      const res = await fetch('/api/cases', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
       const result = await res.json();
+
       if (result.id) {
-        toast('Case created successfully!', 'success');
-        closeModal('newCaseModal');
-        document.getElementById('ktForm').reset();
-        await loadCases();
-        await loadDashboard();
+        const deposit = parseFloat(document.getElementById('kt_deposit').value);
+        if (deposit > 0) {
+          await fetch(`/api/cases/${result.id}/payments`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ amount: deposit, payment_date: new Date().toISOString().split('T')[0], payment_method: 'unspecified', installment_number: 1, notes: 'Initial deposit' })
+          });
+        }
+
+        toast('Case created!', 'success');
+        await loadCases(); await loadDashboard();
         openCaseDetail(result.id);
-      } else {
-        toast('Error creating case', 'error');
+      } else { toast('Error creating case', 'error'); }
+    }
+
+    // ==================== FINANCE VIEW (F2: govt fee separation in overview) ====================
+    function buildFinanceTabs() {
+      let tabs = [];
+      if (isAdmin()) {
+        tabs = ['Overview', 'My Sales', 'Outstanding'];
+      } else if (isTeamLead()) {
+        tabs = ['My Sales', 'Outstanding'];
+      } else if (isSales()) {
+        tabs = ['My Sales'];
+      }
+
+      const tabBar = document.getElementById('financeTabBar');
+      tabBar.innerHTML = tabs.map((t, i) => {
+        const key = t.toLowerCase().replace(/ /g, '-');
+        return `<button class="tab-btn ${i===0?'active':''}" onclick="switchFinanceTab('${key}',this)">${t}</button>`;
+      }).join('');
+
+      if (tabs.length > 0) {
+        const firstKey = tabs[0].toLowerCase().replace(/ /g, '-');
+        loadFinanceTab(firstKey);
       }
     }
 
-    async function updateCaseStatus(id, status) {
-      if (!status) return;
-      await fetch(`/api/cases/${id}`, {
-        method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status })
-      });
-      toast('Status updated', 'success');
-      openCaseDetail(id);
-      loadCases();
-      loadDashboard();
+    function switchFinanceTab(tabKey, btn) {
+      document.querySelectorAll('#financeTabBar .tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      loadFinanceTab(tabKey);
+    }
+
+    async function loadFinanceTab(tabKey) {
+      const container = document.getElementById('financeTabContent');
+      if (tabKey === 'overview') {
+        await loadFinanceOverview(container);
+      } else if (tabKey === 'my-sales') {
+        await loadMyFinance(container);
+      } else if (tabKey === 'outstanding') {
+        await loadOutstanding(container);
+      }
+    }
+
+    // F2: Finance overview with separate govt fees
+    async function loadFinanceOverview(container) {
+      try {
+        const data = await (await fetch('/api/finance/summary')).json();
+        financeOverviewData = data;
+
+        const fmtMoney = (v) => '$' + (v || 0).toLocaleString(undefined,{minimumFractionDigits:2});
+
+        container.innerHTML = `
+          <div class="finance-summary">
+            <div class="finance-card"><div class="fin-label">Revenue (Filing Fees)</div><div class="fin-value">${fmtMoney(data.revenue_fees)}</div></div>
+            <div class="finance-card"><div class="fin-label">Govt Fees (Pass-through)</div><div class="fin-value">${fmtMoney(data.govt_fees)}</div></div>
+            <div class="finance-card"><div class="fin-label">Total Billed</div><div class="fin-value">${fmtMoney(data.total_fees)}</div></div>
+            <div class="finance-card green"><div class="fin-label">Collected</div><div class="fin-value">${fmtMoney(data.total_paid)}</div></div>
+            <div class="finance-card ${(data.revenue_fees - data.total_paid) > 0 ? 'red' : 'green'}"><div class="fin-label">Outstanding (Filing)</div><div class="fin-value">${fmtMoney((data.revenue_fees || 0) - (data.total_paid || 0))}</div></div>
+          </div>
+          <div class="search-bar" style="margin-bottom:12px;">
+            <select id="finOverviewCaseType" onchange="filterFinanceOverview()">
+              <option value="">All Case Types</option>
+              ${caseTypes.map(ct => `<option value="${esc(ct.name)}">${esc(ct.name)}</option>`).join('')}
+            </select>
+            <select id="finOverviewCreatedBy" onchange="filterFinanceOverview()">
+              <option value="">All Counsellors</option>
+              ${allUsers.filter(u => ['sales','admin','team_lead'].includes(u.role)).map(u => `<option value="${esc(u.full_name)}">${esc(u.full_name)}</option>`).join('')}
+            </select>
+          </div>
+          <div id="finOverviewAgingTable"></div>
+          ${data.monthly_revenue.length > 0 ? `<div class="card">
+            <div class="card-header"><h3>Monthly Revenue</h3></div>
+            <div class="card-body"><table>
+              <thead><tr><th>Month</th><th>Revenue</th></tr></thead>
+              <tbody>${data.monthly_revenue.map(m => `<tr><td>${m.month}</td><td style="font-weight:600;">$${m.total.toFixed(2)}</td></tr>`).join('')}</tbody>
+            </table></div>
+          </div>` : ''}
+        `;
+        renderFinanceOverviewAging(data.aging);
+      } catch(e) {
+        container.innerHTML = '<div class="card"><div class="card-body"><p style="text-align:center;color:var(--text-secondary);padding:24px;">Unable to load finance data.</p></div></div>';
+      }
+    }
+
+    function filterFinanceOverview() {
+      if (!financeOverviewData) return;
+      const ctFilter = document.getElementById('finOverviewCaseType')?.value || '';
+      const cbFilter = document.getElementById('finOverviewCreatedBy')?.value || '';
+      let items = financeOverviewData.aging;
+      if (ctFilter) items = items.filter(a => a.case_type_name === ctFilter);
+      if (cbFilter) items = items.filter(a => a.created_by_name === cbFilter);
+      renderFinanceOverviewAging(items);
+    }
+
+    function renderFinanceOverviewAging(aging) {
+      const el = document.getElementById('finOverviewAgingTable');
+      if (!el) return;
+      el.innerHTML = aging.length > 0 ? `<div class="card">
+        <div class="card-header"><h3>Outstanding Balances (${aging.length} cases)</h3></div>
+        <div class="card-body"><table>
+          <thead><tr><th>Client</th><th>Case Type</th><th>Created By</th><th>Fees</th><th>Paid</th><th>Balance</th></tr></thead>
+          <tbody>${aging.map(a => `<tr style="cursor:pointer;" onclick="openCaseDetail(${a.id})">
+            <td><strong>${esc(a.client_name)}</strong></td>
+            <td style="font-size:11px;">${esc(a.case_type_name)}</td>
+            <td style="font-size:11px;">${esc(a.created_by_name || '—')}</td>
+            <td>$${a.total_fees.toFixed(2)}</td>
+            <td>$${a.total_paid.toFixed(2)}</td>
+            <td style="color:var(--danger);font-weight:600;">$${a.balance_due.toFixed(2)}</td>
+          </tr>`).join('')}</tbody>
+        </table></div>
+      </div>` : '<div class="card"><div class="card-body"><p style="text-align:center;color:var(--text-secondary);">No outstanding balances.</p></div></div>';
+    }
+
+    // F2: My Sales tab — balance = filing fees only
+    async function loadMyFinance(container) {
+      try {
+        const data = await (await fetch('/api/cases/my-sales-finance')).json();
+        const cases = data.cases || [];
+        const totalSales = data.total_fees || 0;
+        const totalCollected = data.total_paid || 0;
+        const totalOutstanding = data.total_due || 0;
+
+        container.innerHTML = `
+          <div class="finance-summary">
+            <div class="finance-card"><div class="fin-label">Total Sales</div><div class="fin-value">$${totalSales.toLocaleString(undefined,{minimumFractionDigits:2})}</div></div>
+            <div class="finance-card green"><div class="fin-label">Collected</div><div class="fin-value">$${totalCollected.toLocaleString(undefined,{minimumFractionDigits:2})}</div></div>
+            <div class="finance-card ${totalOutstanding > 0 ? 'red' : 'green'}"><div class="fin-label">Outstanding</div><div class="fin-value">$${totalOutstanding.toLocaleString(undefined,{minimumFractionDigits:2})}</div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>My Cases (${cases.length})</h3></div>
+            <div class="card-body">
+              ${cases.length === 0 ? '<p style="text-align:center;color:var(--text-secondary);padding:24px;">No cases created by you yet.</p>' :
+              `<table>
+                <thead><tr><th>Client</th><th>Type</th><th>Stage</th><th>Assigned To</th><th>Fees</th><th>Paid</th><th>Balance</th><th>Created</th></tr></thead>
+                <tbody>${cases.map(c => {
+                  // F2: Balance = filing fees - payments (not including govt fees)
+                  const cFilingFees = parseFloat(c.filing_fees || c.total_fees) || 0;
+                  const cPaid = parseFloat(c.total_paid) || 0;
+                  const bal = cFilingFees - cPaid;
+                  return `<tr style="cursor:pointer;" onclick="openCaseDetail(${c.id})">
+                    <td><strong>${esc(c.client_name)}</strong></td>
+                    <td style="font-size:11px;">${esc(c.case_type_name)}</td>
+                    <td><span class="badge badge-${c.stage}">${fmtStatus(c.stage)}</span></td>
+                    <td>${esc(c.assigned_to_name || '—')}</td>
+                    <td>$${(parseFloat(c.total_fees) || 0).toFixed(0)}</td>
+                    <td>$${(parseFloat(c.total_paid) || 0).toFixed(0)}</td>
+                    <td style="font-weight:600;color:${bal > 0 ? 'var(--danger)' : 'var(--success)'};">$${bal.toFixed(0)}</td>
+                    <td style="font-size:11px;">${fmtDate(c.created_at)}</td>
+                  </tr>`;
+                }).join('')}</tbody>
+              </table>`}
+            </div>
+          </div>
+        `;
+      } catch(e) {
+        container.innerHTML = '<div class="card"><div class="card-body"><p style="text-align:center;color:var(--text-secondary);padding:24px;">Unable to load finance data.</p></div></div>';
+      }
+    }
+
+    async function loadOutstanding(container) {
+      try {
+        const data = await (await fetch('/api/finance/outstanding')).json();
+        const items = data.aging || [];
+        const totalOutstanding = data.total_due || 0;
+
+        container.innerHTML = `
+          <div class="finance-summary">
+            <div class="finance-card red"><div class="fin-label">Total Outstanding</div><div class="fin-value">$${totalOutstanding.toLocaleString(undefined,{minimumFractionDigits:2})}</div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Cases with Outstanding Balances (${items.length})</h3></div>
+            <div class="card-body">
+              ${items.length === 0 ? '<p style="text-align:center;color:var(--text-secondary);padding:24px;">No outstanding payments.</p>' :
+              `<table>
+                <thead><tr><th>Client</th><th>Type</th><th>Stage</th><th>Assigned To</th><th>Fees</th><th>Paid</th><th>Balance Due</th></tr></thead>
+                <tbody>${items.map(c => `<tr style="cursor:pointer;" onclick="openCaseDetail(${c.id})">
+                  <td><strong>${esc(c.client_name)}</strong></td>
+                  <td style="font-size:11px;">${esc(c.case_type_name)}</td>
+                  <td><span class="badge badge-${c.stage}">${fmtStatus(c.stage)}</span></td>
+                  <td>${esc(c.assigned_to_name || '—')}</td>
+                  <td>$${(parseFloat(c.total_fees) || 0).toFixed(2)}</td>
+                  <td>$${(parseFloat(c.total_paid) || 0).toFixed(2)}</td>
+                  <td style="color:var(--danger);font-weight:600;">$${(parseFloat(c.balance_due) || 0).toFixed(2)}</td>
+                </tr>`).join('')}</tbody>
+              </table>`}
+            </div>
+          </div>
+        `;
+      } catch(e) {
+        container.innerHTML = '<div class="card"><div class="card-body"><p style="text-align:center;color:var(--text-secondary);padding:24px;">Unable to load outstanding data.</p></div></div>';
+      }
+    }
+
+    // ==================== SLA CONFIG VIEW ====================
+    let slaConfigItems = [];
+
+    async function loadSlaConfig() {
+      try {
+        const data = await (await fetch('/api/sla-config')).json();
+        slaConfigItems = Array.isArray(data) ? data : (data.items || []);
+        document.getElementById('slaConfigContent').innerHTML = `
+          <div class="card">
+            <div class="card-header"><h3>SLA Settings by Case Type</h3></div>
+            <div class="card-body">
+              ${slaConfigItems.length === 0 ? '<p style="text-align:center;color:var(--text-secondary);padding:24px;">No SLA configuration found.</p>' :
+              `<table>
+                <thead><tr><th>Case Type</th><th>Expected Days</th><th>Warning Days</th><th>Points (Leaderboard)</th></tr></thead>
+                <tbody>${slaConfigItems.map(item => `<tr>
+                  <td><strong>${esc(item.case_type_name || item.name)}</strong></td>
+                  <td><input type="number" id="sla_expected_${item.id}" value="${item.expected_days || ''}" style="width:80px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;" min="1"></td>
+                  <td><input type="number" id="sla_warning_${item.id}" value="${item.warning_days || ''}" style="width:80px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;" min="1"></td>
+                  <td><input type="number" id="sla_points_${item.id}" value="${item.points || 5}" style="width:80px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;" min="0"></td>
+                </tr>`).join('')}</tbody>
+              </table>
+              <div style="margin-top:16px;display:flex;justify-content:flex-end;">
+                <button class="btn btn-primary" onclick="saveAllSlaConfig()">Save All Changes</button>
+              </div>`}
+            </div>
+          </div>
+        `;
+      } catch(e) {
+        document.getElementById('slaConfigContent').innerHTML = '<div class="card"><div class="card-body"><p style="text-align:center;color:var(--text-secondary);padding:24px;">Unable to load SLA configuration.</p></div></div>';
+      }
+    }
+
+    async function saveAllSlaConfig() {
+      let errors = 0;
+      for (const item of slaConfigItems) {
+        const expected = document.getElementById(`sla_expected_${item.id}`).value;
+        const warning = document.getElementById(`sla_warning_${item.id}`).value;
+        const points = document.getElementById(`sla_points_${item.id}`).value;
+        try {
+          await fetch(`/api/sla-config/${item.id}`, {
+            method: 'PUT',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ expected_days: parseInt(expected) || null, warning_days: parseInt(warning) || null, points: parseInt(points) || 0 })
+          });
+        } catch(e) {
+          errors++;
+        }
+      }
+      if (errors > 0) {
+        toast(`Saved with ${errors} error(s)`, 'error');
+      } else {
+        toast('All SLA configs saved', 'success');
+      }
+    }
+
+    // ==================== ACTIONS ====================
+    async function updateStage(id, stage) {
+      await fetch(`/api/cases/${id}/stage`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ stage }) });
+      toast('Stage updated', 'success'); openCaseDetail(id); loadCases(); loadDashboard();
+    }
+    async function updatePriority(id, priority) {
+      await fetch(`/api/cases/${id}/priority`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ priority }) });
+      toast('Priority updated', 'success');
+    }
+    async function markCRM(id) {
+      await fetch(`/api/cases/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ crm_added: 1 }) });
+      toast('Marked as added to CRM', 'success'); openCaseDetail(id);
     }
 
     function openDocStatusModal(docId, name, status, note, ref) {
@@ -924,172 +1849,568 @@
       document.getElementById('docStatusModal').dataset.docId = docId;
       openModal('docStatusModal');
     }
-
     async function submitDocStatus() {
       const docId = document.getElementById('docStatusModal').dataset.docId;
-      const data = {
-        status: document.getElementById('docStatus_status').value,
-        status_note: document.getElementById('docStatus_note').value,
-        file_reference: document.getElementById('docStatus_ref').value,
-      };
-      await fetch(`/api/documents/${docId}`, {
-        method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
-      });
-      toast('Document updated', 'success');
-      closeModal('docStatusModal');
-      openCaseDetail(currentCaseId);
-      loadCases();
-      loadDashboard();
+      await fetch(`/api/documents/${docId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status: document.getElementById('docStatus_status').value, status_note: document.getElementById('docStatus_note').value, file_reference: document.getElementById('docStatus_ref').value }) });
+      toast('Updated', 'success'); closeModal('docStatusModal'); openCaseDetail(currentCaseId); loadCases();
     }
-
-    function openAddDocModal() {
-      document.getElementById('addDoc_name').value = '';
-      document.getElementById('addDoc_category').value = 'General';
-      document.getElementById('addDoc_required').value = '1';
-      document.getElementById('addDoc_desc').value = '';
-      openModal('addDocModal');
-    }
-
+    function openAddDocModal() { document.getElementById('addDoc_name').value=''; document.getElementById('addDoc_category').value='General'; openModal('addDocModal'); }
     async function submitAddDoc() {
-      const data = {
-        document_name: document.getElementById('addDoc_name').value,
-        category: document.getElementById('addDoc_category').value,
-        is_required: parseInt(document.getElementById('addDoc_required').value),
-        description: document.getElementById('addDoc_desc').value,
-      };
-      if (!data.document_name) { toast('Please enter a document name', 'error'); return; }
-      await fetch(`/api/cases/${currentCaseId}/documents`, {
-        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
-      });
-      toast('Document added', 'success');
-      closeModal('addDocModal');
-      openCaseDetail(currentCaseId);
+      const name = document.getElementById('addDoc_name').value;
+      if (!name) { toast('Name required', 'error'); return; }
+      await fetch(`/api/cases/${currentCaseId}/documents`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ document_name: name, category: document.getElementById('addDoc_category').value, is_required: parseInt(document.getElementById('addDoc_required').value), description: document.getElementById('addDoc_desc').value }) });
+      toast('Added', 'success'); closeModal('addDocModal'); openCaseDetail(currentCaseId);
     }
+    async function deleteDoc(docId) { if (!confirm('Remove?')) return; await fetch(`/api/documents/${docId}`, { method: 'DELETE' }); openCaseDetail(currentCaseId); }
 
-    async function deleteDoc(docId) {
-      if (!confirm('Remove this document from the checklist?')) return;
-      await fetch(`/api/documents/${docId}`, { method: 'DELETE' });
-      toast('Document removed', 'success');
-      openCaseDetail(currentCaseId);
+    // Finance actions
+    function openFeeModal() { document.getElementById('fee_type').value='processing'; document.getElementById('fee_amount').value=''; document.getElementById('fee_desc').value=''; openModal('feeModal'); }
+    function openFeeModalGovt() { document.getElementById('fee_type').value='application'; document.getElementById('fee_amount').value=''; document.getElementById('fee_desc').value=''; openModal('feeModal'); }
+    async function submitFee() {
+      const amt = document.getElementById('fee_amount').value;
+      if (!amt) { toast('Amount required', 'error'); return; }
+      await fetch(`/api/cases/${currentCaseId}/fees`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ fee_type: document.getElementById('fee_type').value, amount: amt, description: document.getElementById('fee_desc').value }) });
+      toast('Fee added', 'success'); closeModal('feeModal'); openCaseDetail(currentCaseId);
     }
+    async function deleteFee(id) { if (!confirm('Remove fee?')) return; await fetch(`/api/fees/${id}`, { method: 'DELETE' }); openCaseDetail(currentCaseId); }
 
-    // Team management
-    async function loadTeam() {
-      await loadUsers();
-      document.getElementById('teamTableBody').innerHTML = allUsers.map(u => `
-        <tr>
-          <td>${esc(u.full_name)}</td>
-          <td>${esc(u.username)}</td>
-          <td><span class="badge badge-active">${u.role}</span></td>
-          <td>${u.role !== 'admin' ? `<button class="btn btn-xs btn-danger" onclick="deleteUser(${u.id})">Remove</button>` : ''}</td>
-        </tr>
-      `).join('');
-    }
-
-    function openAddUserModal() {
-      document.getElementById('newUser_name').value = '';
-      document.getElementById('newUser_username').value = '';
-      document.getElementById('newUser_password').value = '';
-      openModal('addUserModal');
-    }
-
-    async function submitAddUser() {
-      const data = {
-        full_name: document.getElementById('newUser_name').value,
-        username: document.getElementById('newUser_username').value,
-        password: document.getElementById('newUser_password').value,
-        role: document.getElementById('newUser_role').value,
-      };
-      if (!data.full_name || !data.username || !data.password) { toast('Please fill all fields', 'error'); return; }
-      const res = await fetch('/api/users', {
-        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
-      });
-      const result = await res.json();
-      if (result.id) {
-        toast('Team member added', 'success');
-        closeModal('addUserModal');
-        loadTeam();
-        loadUsers();
+    // F5: Edit Fee Modal
+    function openEditFeeModal(feeId, feeType, amount, description) {
+      document.getElementById('editFee_type').value = feeType;
+      document.getElementById('editFee_amount').value = amount;
+      document.getElementById('editFee_desc').value = description;
+      document.getElementById('editFeeModal').dataset.feeId = feeId;
+      // Show govt fee status field if it's an application/govt fee
+      const govtGroup = document.getElementById('editFee_govtStatusGroup');
+      if (feeType === 'application') {
+        govtGroup.style.display = '';
       } else {
-        toast(result.error || 'Error adding user', 'error');
+        govtGroup.style.display = 'none';
+      }
+      // Update visibility on type change
+      document.getElementById('editFee_type').onchange = function() {
+        govtGroup.style.display = this.value === 'application' ? '' : 'none';
+      };
+      openModal('editFeeModal');
+    }
+    async function submitEditFee() {
+      const feeId = document.getElementById('editFeeModal').dataset.feeId;
+      const amt = document.getElementById('editFee_amount').value;
+      if (!amt) { toast('Amount required', 'error'); return; }
+      const payload = {
+        fee_type: document.getElementById('editFee_type').value,
+        amount: parseFloat(amt),
+        description: document.getElementById('editFee_desc').value
+      };
+      if (payload.fee_type === 'application') {
+        payload.govt_fee_status = document.getElementById('editFee_govtStatus').value;
+      }
+      try {
+        await fetch(`/api/fees/${feeId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        toast('Fee updated', 'success');
+        closeModal('editFeeModal');
+        openCaseDetail(currentCaseId);
+      } catch(e) {
+        toast('Error updating fee', 'error');
       }
     }
 
-    async function deleteUser(id) {
-      if (!confirm('Remove this team member?')) return;
-      await fetch(`/api/users/${id}`, { method: 'DELETE' });
-      toast('Member removed', 'success');
-      loadTeam();
-      loadUsers();
+    function openPaymentModal() {
+      document.getElementById('pay_amount').value=''; document.getElementById('pay_date').value=new Date().toISOString().split('T')[0];
+      document.getElementById('pay_notes').value=''; openModal('paymentModal');
+    }
+    async function submitPayment() {
+      const amt = document.getElementById('pay_amount').value;
+      const date = document.getElementById('pay_date').value;
+      if (!amt || !date) { toast('Amount and date required', 'error'); return; }
+      await fetch(`/api/cases/${currentCaseId}/payments`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ amount: amt, payment_date: date, payment_method: document.getElementById('pay_method').value, installment_number: document.getElementById('pay_installment').value || null, notes: document.getElementById('pay_notes').value }) });
+      toast('Payment recorded', 'success'); closeModal('paymentModal'); openCaseDetail(currentCaseId);
+    }
+    async function deletePayment(id) { if (!confirm('Remove payment?')) return; await fetch(`/api/payments/${id}`, { method: 'DELETE' }); openCaseDetail(currentCaseId); }
+
+    // ==================== TEAM ====================
+    async function loadTeam() {
+      await loadUsers();
+      const isAdminUser = isAdmin();
+      document.getElementById('teamTableBody').innerHTML = allUsers.map((u, idx) => `<tr>
+        <td>${esc(u.full_name)}</td>
+        <td>${esc(u.username)}</td>
+        <td><span class="badge badge-active">${u.role}</span></td>
+        <td style="display:flex;gap:4px;flex-wrap:wrap;">
+          <button class="btn btn-xs btn-outline" onclick="openEditUserModal(${u.id},'${esc(u.full_name)}','${esc(u.role)}')">Edit</button>
+          <button class="btn btn-xs btn-outline" onclick="openResetPwdModal(${u.id},'${esc(u.full_name)}')">Reset Pwd</button>
+          ${idx > 0 ? `<button class="btn btn-xs btn-outline" onclick="moveUser(${idx},-1)" title="Move Up">↑</button>` : ''}
+          ${idx < allUsers.length - 1 ? `<button class="btn btn-xs btn-outline" onclick="moveUser(${idx},1)" title="Move Down">↓</button>` : ''}
+          ${u.role!=='admin'?`<button class="btn btn-xs btn-danger" onclick="deleteUser(${u.id})" style="margin-left:4px;">Remove</button>`:''}
+        </td>
+      </tr>`).join('');
+    }
+
+    function openAddUserModal() { ['newUser_name','newUser_username','newUser_password'].forEach(id=>document.getElementById(id).value=''); openModal('addUserModal'); }
+    async function submitAddUser() {
+      const data = { full_name: document.getElementById('newUser_name').value, username: document.getElementById('newUser_username').value, password: document.getElementById('newUser_password').value, role: document.getElementById('newUser_role').value };
+      if (!data.full_name||!data.username||!data.password) { toast('Fill all fields', 'error'); return; }
+      const res = await fetch('/api/users', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+      const result = await res.json();
+      if (result.id) { toast('Added', 'success'); closeModal('addUserModal'); loadTeam(); loadUsers(); }
+      else { toast(result.error || 'Error', 'error'); }
+    }
+    async function deleteUser(id) { if (!confirm('Remove?')) return; await fetch(`/api/users/${id}`, { method: 'DELETE' }); loadTeam(); loadUsers(); }
+
+    // Edit User
+    function openEditUserModal(userId, userName, userRole) {
+      document.getElementById('editUser_name').value = userName;
+      document.getElementById('editUser_role').value = userRole;
+      document.getElementById('editUserModal').dataset.userId = userId;
+      openModal('editUserModal');
+    }
+    async function submitEditUser() {
+      const userId = document.getElementById('editUserModal').dataset.userId;
+      const data = {
+        full_name: document.getElementById('editUser_name').value,
+        role: document.getElementById('editUser_role').value
+      };
+      if (!data.full_name) { toast('Name is required', 'error'); return; }
+      try {
+        const res = await fetch(`/api/users/${userId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+        const result = await res.json();
+        if (result.error) { toast(result.error, 'error'); return; }
+        toast('User updated', 'success');
+        closeModal('editUserModal');
+        loadTeam();
+        loadUsers();
+      } catch(e) {
+        toast('Error updating user', 'error');
+      }
+    }
+
+    // Reset Password
+    function openResetPwdModal(userId, userName) {
+      document.getElementById('resetPwd_userName').textContent = userName;
+      document.getElementById('resetPwd_password').value = '';
+      document.getElementById('resetPwdModal').dataset.userId = userId;
+      openModal('resetPwdModal');
+    }
+    async function submitResetPassword() {
+      const userId = document.getElementById('resetPwdModal').dataset.userId;
+      const password = document.getElementById('resetPwd_password').value;
+      if (!password || password.length < 6) { toast('Password must be at least 6 characters', 'error'); return; }
+      try {
+        const res = await fetch(`/api/users/${userId}/password`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ password }) });
+        const result = await res.json();
+        if (result.error) { toast(result.error, 'error'); return; }
+        toast('Password reset successfully', 'success');
+        closeModal('resetPwdModal');
+      } catch(e) {
+        toast('Error resetting password', 'error');
+      }
+    }
+
+    // Move user (reorder)
+    async function moveUser(currentIdx, direction) {
+      const newIdx = currentIdx + direction;
+      if (newIdx < 0 || newIdx >= allUsers.length) return;
+      const ids = allUsers.map(u => u.id);
+      [ids[currentIdx], ids[newIdx]] = [ids[newIdx], ids[currentIdx]];
+      try {
+        await fetch('/api/users/reorder', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ order: ids }) });
+        toast('Order updated', 'success');
+        loadTeam();
+      } catch(e) {
+        toast('Error reordering', 'error');
+      }
+    }
+
+    // ==================== NOTIFICATIONS ====================
+    async function pollNotifications() {
+      try {
+        const { count } = await (await fetch('/api/notifications/count')).json();
+        const badge = document.getElementById('notifBadge');
+        const bell = document.getElementById('notifBell');
+        if (count > 0) {
+          badge.textContent = count;
+          badge.style.display = '';
+          if (count > previousNotifCount && previousNotifCount >= 0) {
+            bell.classList.remove('has-notif');
+            void bell.offsetWidth;
+            bell.classList.add('has-notif');
+          }
+        } else {
+          badge.style.display = 'none';
+          bell.classList.remove('has-notif');
+        }
+        previousNotifCount = count;
+      } catch(e) {}
+    }
+    async function toggleNotifications() {
+      const dd = document.getElementById('notifDropdown');
+      if (dd.classList.contains('show')) { dd.classList.remove('show'); return; }
+      const notifs = await (await fetch('/api/notifications')).json();
+      document.getElementById('notifList').innerHTML = notifs.length === 0 ?
+        '<div class="notif-item" style="color:var(--text-secondary);">No notifications</div>' :
+        notifs.slice(0, 20).map(n => `<div class="notif-item ${n.is_read ? '' : 'unread'}" onclick="readNotif(${n.id}, ${n.case_id})"><div>${esc(n.message)}</div><div class="notif-time">${fmtDate(n.created_at)}</div></div>`).join('');
+      dd.classList.add('show');
+    }
+    async function readNotif(id, caseId) {
+      await fetch(`/api/notifications/${id}/read`, { method: 'PUT' });
+      document.getElementById('notifDropdown').classList.remove('show');
+      pollNotifications();
+      if (caseId) openCaseDetail(caseId);
+    }
+    async function markAllRead() {
+      await fetch('/api/notifications/read-all', { method: 'PUT' });
+      document.getElementById('notifDropdown').classList.remove('show');
+      pollNotifications();
+    }
+
+    // ==================== LOADING & ERROR HELPERS ====================
+    function showLoading(el) { if (typeof el === 'string') el = document.getElementById(el); if (el) el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-secondary);"><div class="spinner"></div><p style="margin-top:8px;font-size:13px;">Loading...</p></div>'; }
+    function showError(el, msg) { if (typeof el === 'string') el = document.getElementById(el); if (el) el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-secondary);"><p style="font-size:14px;">${esc(msg || 'Something went wrong')}</p><button class="btn btn-outline" onclick="location.reload()" style="margin-top:8px;">Retry</button></div>`; }
+
+    // ==================== GLOBAL SEARCH ====================
+    let searchTimer = null;
+    function debounceSearch() {
+      clearTimeout(searchTimer);
+      const q = document.getElementById('globalSearchInput').value.trim();
+      if (q.length < 2) { document.getElementById('globalSearchResults').classList.remove('show'); return; }
+      searchTimer = setTimeout(() => performSearch(q), 300);
+    }
+
+    async function performSearch(q) {
+      try {
+        const results = await (await fetch(`/api/search?q=${encodeURIComponent(q)}`)).json();
+        const el = document.getElementById('globalSearchResults');
+        if (results.length === 0) {
+          el.innerHTML = '<div class="search-result-item" style="color:var(--text-secondary);">No results found</div>';
+        } else {
+          el.innerHTML = results.map(r => `
+            <div class="search-result-item" onclick="document.getElementById('globalSearchResults').classList.remove('show');document.getElementById('globalSearchInput').value='';openCaseDetail(${r.id})">
+              <div class="sr-name">${esc(r.client_name)}</div>
+              <div class="sr-meta">${esc(r.case_type_name)} · ${esc(r.assigned_to_name || 'Unassigned')} · <span class="badge badge-${r.stage}">${fmtStatus(r.stage)}</span></div>
+            </div>
+          `).join('');
+        }
+        el.classList.add('show');
+      } catch(e) {}
+    }
+
+    // ==================== CASE NOTES ====================
+    async function loadCaseNotes(caseId) {
+      try {
+        const notes = await (await fetch(`/api/cases/${caseId}/notes`)).json();
+        document.getElementById('caseNotesContent').innerHTML = `
+          <div style="margin-bottom:16px;">
+            <textarea id="newNoteText" rows="3" placeholder="Add an internal note..." style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+              <button class="btn btn-primary" onclick="addCaseNote(${caseId})">Add Note</button>
+            </div>
+          </div>
+          ${notes.length === 0 ? '<p style="text-align:center;color:var(--text-secondary);padding:24px;font-size:13px;">No notes yet. Add the first note above.</p>' :
+          notes.map(n => `
+            <div style="padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="font-size:12px;"><strong>${esc(n.user_name)}</strong> <span style="color:var(--text-secondary);">· ${fmtDate(n.created_at)}</span></div>
+                ${(n.user_id === currentUser.id || isAdmin()) ? `<button class="btn btn-xs" style="color:var(--danger);background:none;" onclick="deleteCaseNote(${n.id},${caseId})">Delete</button>` : ''}
+              </div>
+              <div style="margin-top:6px;font-size:13px;white-space:pre-wrap;">${esc(n.note)}</div>
+            </div>
+          `).join('')}
+        `;
+      } catch(e) {
+        document.getElementById('caseNotesContent').innerHTML = '<p style="text-align:center;color:var(--text-secondary);padding:24px;font-size:13px;">Unable to load notes.</p>';
+      }
+    }
+
+    async function addCaseNote(caseId) {
+      const note = document.getElementById('newNoteText').value.trim();
+      if (!note) { toast('Please enter a note', 'error'); return; }
+      await fetch(`/api/cases/${caseId}/notes`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ note }) });
+      toast('Note added', 'success');
+      loadCaseNotes(caseId);
+    }
+
+    async function deleteCaseNote(noteId, caseId) {
+      if (!confirm('Delete this note?')) return;
+      await fetch(`/api/notes/${noteId}`, { method: 'DELETE' });
+      loadCaseNotes(caseId);
+    }
+
+    // ==================== CASE TASKS ====================
+    async function loadCaseTasks(caseId) {
+      try {
+        const tasks = await (await fetch(`/api/cases/${caseId}/tasks`)).json();
+        document.getElementById('caseTasksContent').innerHTML = `
+          <div style="margin-bottom:16px;padding:12px;border:1px solid var(--border);border-radius:8px;">
+            <div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap;">
+              <div style="flex:1;min-width:180px;"><label style="font-size:11px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:4px;">Task</label><input type="text" id="newTaskTitle" placeholder="e.g. Follow up on passport..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;"></div>
+              <div><label style="font-size:11px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:4px;">Due Date</label><input type="date" id="newTaskDue" style="padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;"></div>
+              <button class="btn btn-primary" onclick="addCaseTask(${caseId})">Add</button>
+            </div>
+          </div>
+          ${tasks.length === 0 ? '<p style="text-align:center;color:var(--text-secondary);padding:24px;font-size:13px;">No tasks. Add one above.</p>' :
+          tasks.map(t => {
+            const overdue = !t.is_completed && t.due_date && new Date(t.due_date) < new Date();
+            return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);${t.is_completed ? 'opacity:0.5;' : ''}">
+              <input type="checkbox" ${t.is_completed ? 'checked' : ''} onchange="toggleTask(${t.id},${caseId},this.checked)" style="width:18px;height:18px;cursor:pointer;">
+              <div style="flex:1;">
+                <div style="font-size:13px;${t.is_completed ? 'text-decoration:line-through;' : ''}">${esc(t.title)}</div>
+                <div style="font-size:11px;color:${overdue ? 'var(--danger)' : 'var(--text-secondary)'};">${t.due_date ? (overdue ? 'Overdue: ' : 'Due: ') + t.due_date : 'No due date'} · ${esc(t.assigned_to_name || '')}</div>
+              </div>
+              <button class="btn btn-xs" style="color:var(--danger);background:none;" onclick="deleteTask(${t.id},${caseId})">×</button>
+            </div>`;
+          }).join('')}
+        `;
+      } catch(e) {
+        document.getElementById('caseTasksContent').innerHTML = '<p style="text-align:center;color:var(--text-secondary);padding:24px;font-size:13px;">Unable to load tasks.</p>';
+      }
+    }
+
+    async function addCaseTask(caseId) {
+      const title = document.getElementById('newTaskTitle').value.trim();
+      if (!title) { toast('Task title required', 'error'); return; }
+      const due_date = document.getElementById('newTaskDue').value || null;
+      await fetch(`/api/cases/${caseId}/tasks`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title, due_date }) });
+      toast('Task added', 'success');
+      loadCaseTasks(caseId);
+    }
+
+    async function toggleTask(taskId, caseId, completed) {
+      await fetch(`/api/tasks/${taskId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ is_completed: completed }) });
+      loadCaseTasks(caseId);
+    }
+
+    async function deleteTask(taskId, caseId) {
+      await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
+      loadCaseTasks(caseId);
+    }
+
+    async function toggleTaskFromWidget(taskId, completed) {
+      await fetch(`/api/tasks/${taskId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ is_completed: completed }) });
+      loadDashboard();
+    }
+
+    // ==================== MOBILE NAV ====================
+    function toggleMobileNav() {
+      document.querySelector('.sidebar').classList.toggle('mobile-open');
+      document.getElementById('mobileOverlay').classList.toggle('show');
+    }
+    function closeMobileNav() {
+      document.querySelector('.sidebar').classList.remove('mobile-open');
+      document.getElementById('mobileOverlay').classList.remove('show');
     }
 
     // ==================== UI HELPERS ====================
     function showView(name) {
+      // Permission checks
+      if (name === 'finance' && isFiling()) { toast('Finance access not available for filing role', 'error'); return; }
+      if (name === 'statistics' && !isAdmin()) { toast('Admin access required', 'error'); return; }
+      if (name === 'team' && !isAdmin()) { toast('Admin access required', 'error'); return; }
+      if (name === 'queue' && !canAssignCases()) { toast('Team lead or admin access required', 'error'); return; }
+      if (name === 'sla-config' && !isAdmin()) { toast('Admin access required', 'error'); return; }
+
+      closeMobileNav();
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      document.getElementById(`view-${name}`).classList.add('active');
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      if (name === 'dashboard') {
-        document.querySelectorAll('.nav-item')[0].classList.add('active');
-        loadDashboard();
+      const el = document.getElementById(`view-${name}`);
+      if (el) el.classList.add('active');
+
+      document.querySelectorAll('#sidebarNav .nav-item').forEach(n => {
+        n.classList.remove('active');
+        if (n.getAttribute('onclick') === `showView('${name}')`) n.classList.add('active');
+      });
+
+      // Save current view to session storage
+      sessionStorage.setItem('lastView', name);
+
+      if (name === 'dashboard') loadDashboard();
+      if (name === 'cases') loadCases();
+      if (name === 'my-files') loadMyFiles();
+      if (name === 'queue') loadQueue();
+      if (name === 'kt-form') renderKTForm();
+      if (name === 'finance') buildFinanceTabs();
+      if (name === 'statistics') loadStatistics();
+      if (name === 'team') loadTeam();
+      if (name === 'sla-config') loadSlaConfig();
+    }
+
+    function switchTab(tabName, btn) {
+      const parent = btn.closest('.view') || document.getElementById('view-case-detail');
+      parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+    }
+
+    function switchStatTab(tabName, btn) {
+      document.querySelectorAll('#view-statistics .tab-bar .tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#view-statistics .tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+    }
+
+    // ==================== STATISTICS (F8: date filters) ====================
+    function setStatsPeriod(period, btn) {
+      currentStatsPeriod = period;
+      document.querySelectorAll('#statsPeriodBar .btn').forEach(b => {
+        b.className = 'btn btn-xs btn-outline';
+      });
+      if (btn) btn.className = 'btn btn-xs btn-primary';
+      loadStatistics();
+    }
+
+    function getStatsPeriodStartDate(period) {
+      const now = new Date();
+      if (period === 'all') return null;
+      if (period === 'current_month') return new Date(now.getFullYear(), now.getMonth(), 1);
+      const months = { '1m': 1, '3m': 3, '6m': 6 };
+      const m = months[period] || 1;
+      return new Date(now.getFullYear(), now.getMonth() - m, now.getDate());
+    }
+
+    function filterByStatsPeriod(items, dateField) {
+      const startDate = getStatsPeriodStartDate(currentStatsPeriod);
+      if (!startDate) return items;
+      return items.filter(item => {
+        const d = item[dateField];
+        if (!d) return false;
+        return new Date(d) >= startDate;
+      });
+    }
+
+    async function loadStatistics() {
+      try {
+      // Counsellor (Sales Team) stats — sorted by total cases desc
+      const counsellors = await (await fetch('/api/stats/counsellors')).json();
+      counsellors.sort((a, b) => (b.total_cases || 0) - (a.total_cases || 0));
+      document.getElementById('counsellorStatsContent').innerHTML = counsellors.length === 0 ?
+        '<div class="card"><div class="card-body"><p style="text-align:center;color:var(--text-secondary);">No sales team data.</p></div></div>' :
+        `<div class="card"><table>
+          <thead><tr><th>Counsellor</th><th>Total Cases</th><th>Active</th><th>Submitted</th><th>Approved</th><th>Refused</th><th>Total Sales</th><th>Collected</th><th>Pending</th></tr></thead>
+          <tbody>${counsellors.map(c => `<tr style="cursor:pointer;" onclick="loadCounsellorCases(${c.id}, '${esc(c.full_name)}', ${c.total_cases||0}, ${c.active_cases||0}, ${c.submitted_cases||0}, ${c.total_sales||0})">
+            <td><strong>${esc(c.full_name)}</strong></td>
+            <td>${c.total_cases || 0}</td>
+            <td>${c.active_cases || 0}</td>
+            <td>${c.submitted_cases || 0}</td>
+            <td style="color:var(--success);font-weight:600;">${c.approved_cases || 0}</td>
+            <td style="color:var(--danger);font-weight:600;">${c.refused_cases || 0}</td>
+            <td>$${(c.total_sales || 0).toLocaleString()}</td>
+            <td style="color:var(--success);">$${(c.total_collected || 0).toLocaleString()}</td>
+            <td style="color:${(c.total_pending || 0) > 0 ? 'var(--danger)' : 'var(--success)'};">$${(c.total_pending || 0).toLocaleString()}</td>
+          </tr>`).join('')}</tbody>
+        </table></div>
+        <div id="counsellorCasesDetail"></div>`;
+
+      // Staff (Filing Team) stats — sorted by total assigned desc
+      const staff = await (await fetch('/api/stats/staff')).json();
+      staff.sort((a, b) => (b.total_assigned || 0) - (a.total_assigned || 0));
+      document.getElementById('staffStatsContent').innerHTML = staff.length === 0 ?
+        '<div class="card"><div class="card-body"><p style="text-align:center;color:var(--text-secondary);">No filing team data.</p></div></div>' :
+        `<div class="card"><table>
+          <thead><tr><th>Staff</th><th>Role</th><th>Total</th><th>Assigned</th><th>In Progress</th><th>Docs Complete</th><th>Submitted</th><th>Approved</th><th>Overdue</th></tr></thead>
+          <tbody>${staff.map(s => `<tr style="cursor:pointer;" onclick="loadStaffCases(${s.id}, '${esc(s.full_name)}')">
+            <td><strong>${esc(s.full_name)}</strong></td>
+            <td><span class="badge badge-active">${esc(s.role)}</span></td>
+            <td>${s.total_assigned || 0}</td>
+            <td>${s.assigned || 0}</td>
+            <td>${s.in_progress || 0}</td>
+            <td>${s.docs_complete || 0}</td>
+            <td>${s.submitted || 0}</td>
+            <td style="color:var(--success);">${s.approved || 0}</td>
+            <td style="color:${(s.overdue || 0) > 0 ? 'var(--danger)' : 'inherit'};font-weight:${(s.overdue || 0) > 0 ? '600' : 'normal'};">${s.overdue || 0}</td>
+          </tr>`).join('')}</tbody>
+        </table></div>
+        <div id="staffCasesDetail"></div>`;
+      } catch(e) { showError('counsellorStatsContent', 'Failed to load statistics'); }
+    }
+
+    // Counsellor drill-down
+    async function loadCounsellorCases(counsellorId, name, totalCases, activeCases, submittedCases, totalSales) {
+      const allCounsellorCases = await (await fetch(`/api/stats/counsellors/${counsellorId}/cases`)).json();
+      // F8: Client-side date filtering
+      const cases = filterByStatsPeriod(allCounsellorCases, 'created_at');
+      const el = document.getElementById('counsellorCasesDetail');
+      if (!el) return;
+
+      let html = `<div class="drill-down-header">
+        <h3>Cases by ${esc(name)}</h3>
+        <div class="drill-summary">${cases.length} cases shown (filtered by period)</div>
+      </div>`;
+
+      if (cases.length > 0) {
+        html += `<div class="card">
+          <div class="card-body"><table>
+            <thead><tr><th>Client</th><th>Type</th><th>Stage</th><th>Assigned To</th><th>Fees</th><th>Paid</th><th>Created</th></tr></thead>
+            <tbody>${cases.map(c => `<tr style="cursor:pointer;" onclick="openCaseDetail(${c.id})">
+              <td><strong>${esc(c.client_name)}</strong></td>
+              <td style="font-size:11px;">${esc(c.case_type_name)}</td>
+              <td><span class="badge badge-${c.stage}">${fmtStatus(c.stage)}</span></td>
+              <td>${esc(c.assigned_to_name || '—')}</td>
+              <td>$${(c.total_fees || 0).toFixed(0)}</td>
+              <td>$${(c.total_paid || 0).toFixed(0)}</td>
+              <td style="font-size:11px;">${fmtDate(c.created_at)}</td>
+            </tr>`).join('')}</tbody>
+          </table></div>
+        </div>`;
       }
-      if (name === 'cases') {
-        document.querySelectorAll('.nav-item')[1].classList.add('active');
-        loadCases();
+      el.innerHTML = html;
+    }
+
+    // Staff drill-down
+    async function loadStaffCases(staffId, name) {
+      const allStaffCases = await (await fetch(`/api/stats/staff/${staffId}/cases`)).json();
+      // F8: Client-side date filtering
+      const cases = filterByStatsPeriod(allStaffCases, 'created_at');
+      const el = document.getElementById('staffCasesDetail');
+      if (!el) return;
+
+      let html = `<div class="drill-down-header">
+        <h3>Cases handled by ${esc(name)}</h3>
+        <div class="drill-summary">${cases.length} cases shown (filtered by period)</div>
+      </div>`;
+
+      if (cases.length > 0) {
+        html += `<div class="card">
+          <div class="card-body"><table>
+            <thead><tr><th>Client</th><th>Type</th><th>Stage</th><th>Created By</th><th>Created</th></tr></thead>
+            <tbody>${cases.map(c => `<tr style="cursor:pointer;" onclick="openCaseDetail(${c.id})">
+              <td><strong>${esc(c.client_name)}</strong></td>
+              <td style="font-size:11px;">${esc(c.case_type_name)}</td>
+              <td><span class="badge badge-${c.stage}">${fmtStatus(c.stage)}</span></td>
+              <td>${esc(c.created_by_name || '—')}</td>
+              <td style="font-size:11px;">${fmtDate(c.created_at)}</td>
+            </tr>`).join('')}</tbody>
+          </table></div>
+        </div>`;
+      } else {
+        html += '<div class="card"><div class="card-body"><p style="text-align:center;color:var(--text-secondary);">No cases found.</p></div></div>';
       }
-      if (name === 'team') {
-        document.querySelectorAll('.nav-item')[4].classList.add('active');
-        loadTeam();
-      }
+      el.innerHTML = html;
     }
 
     function openModal(id) { document.getElementById(id).classList.add('active'); }
     function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    function copyLink(id) { document.getElementById(id).select(); document.execCommand('copy'); toast('Copied!', 'success'); }
+    function toast(msg, type='') { const t=document.getElementById('toast'); t.textContent=msg; t.className=`toast show ${type}`; setTimeout(()=>t.className='toast',3000); }
+    function fmtDate(d) { if(!d) return '—'; return new Date(d).toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'}); }
+    function fmtStatus(s) { return (s||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); }
+    function esc(s) { if(!s) return ''; const d=document.createElement('div'); d.textContent=String(s); return d.innerHTML; }
 
-    function openNewCaseModal() {
-      document.getElementById('ktForm').reset();
-      openModal('newCaseModal');
+    function getSlaTag(c) {
+      if (!c.sla_deadline) return '';
+      const now = new Date(); const sla = new Date(c.sla_deadline);
+      const daysLeft = Math.ceil((sla - now) / (1000*60*60*24));
+      if (['submitted','approved','refused','withdrawn'].includes(c.stage)) return `<span class="sla-tag sla-ok">Done</span>`;
+      if (daysLeft < 0) return `<span class="sla-tag sla-overdue">${Math.abs(daysLeft)}d overdue</span>`;
+      if (daysLeft <= 7) return `<span class="sla-tag sla-warning">${daysLeft}d left</span>`;
+      return `<span class="sla-tag sla-ok">${daysLeft}d left</span>`;
     }
 
-    function copyClientLink(inputId) {
-      const input = document.getElementById(inputId);
-      input.select();
-      document.execCommand('copy');
-      toast('Link copied to clipboard!', 'success');
-    }
+    async function logout() { await fetch('/api/auth/logout',{method:'POST'}); window.location.href='/staff'; }
 
-    function toast(msg, type = '') {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.className = `toast show ${type}`;
-      setTimeout(() => t.className = 'toast', 3000);
-    }
-
-    function formatDate(d) {
-      if (!d) return '—';
-      return new Date(d).toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    }
-
-    function formatStatus(s) {
-      return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    }
-
-    function esc(s) {
-      if (!s) return '';
-      const div = document.createElement('div');
-      div.textContent = s;
-      return div.innerHTML;
-    }
-
-    async function logout() {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      window.location.href = '/staff';
-    }
-
-    // Close modals on overlay click
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-      overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) overlay.classList.remove('active');
-      });
+    // Close modals & notifs on click outside
+    document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('active'); }));
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.notif-bell') && !e.target.closest('.notif-dropdown')) document.getElementById('notifDropdown').classList.remove('show');
+      if (!e.target.closest('.global-search-wrapper')) document.getElementById('globalSearchResults').classList.remove('show');
     });
 
     init();

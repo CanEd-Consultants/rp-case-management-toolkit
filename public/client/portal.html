@@ -383,11 +383,34 @@
       font-size: 14px;
     }
 
+    /* Tabs */
+    .portal-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 20px; max-width: 900px; margin-left: auto; margin-right: auto; padding: 0 20px; }
+    .portal-tab-btn { padding: 10px 20px; font-size: 14px; font-weight: 600; color: var(--text-secondary); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+    .portal-tab-btn:hover { color: var(--primary); }
+    .portal-tab-btn.active { color: var(--primary-light); border-bottom-color: var(--primary-light); }
+    .portal-tab-content { display: none; }
+    .portal-tab-content.active { display: block; }
+
+    /* Personal info form */
+    .info-form { max-width: 900px; margin: 0 auto; padding: 0 20px 40px; }
+    .info-form .form-section { background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .info-form .form-section h3 { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .info-form .form-group { margin-bottom: 12px; }
+    .info-form .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+    .info-form .form-group input, .info-form .form-group select, .info-form .form-group textarea { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; outline: none; }
+    .info-form .form-group input:focus, .info-form .form-group select:focus, .info-form .form-group textarea:focus { border-color: var(--primary-light); }
+    .info-form .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .info-form .form-row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
+    .info-saved { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: var(--success-light); color: #065f46; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .btn-save-info { padding: 10px 24px; background: var(--primary-light); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn-save-info:hover { background: var(--primary); }
+
     @media (max-width: 600px) {
       .progress-card { flex-direction: column; text-align: center; }
       .stats-pills { justify-content: center; }
       .doc-item { flex-direction: column; gap: 8px; }
       .doc-actions { flex-direction: row; align-items: center; }
+      .info-form .form-row, .info-form .form-row-4 { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -437,13 +460,117 @@
       </div>
     </div>
 
-    <!-- Content -->
-    <div class="content">
-      <div class="info-banner" id="infoBanner">
-        Please submit the documents listed below. You can mark a document as "Sent" once you've shared it with us via WhatsApp or Google Drive.
-        Our team will review each document and update the status. If there's an issue, you'll see a note explaining what's needed.
+    <!-- Tabs -->
+    <div class="portal-tabs">
+      <button class="portal-tab-btn active" onclick="switchPortalTab('documents', this)">Documents</button>
+      <button class="portal-tab-btn" onclick="switchPortalTab('personal-info', this)">Personal Information</button>
+    </div>
+
+    <!-- Tab: Documents -->
+    <div id="ptab-documents" class="portal-tab-content active">
+      <div class="content">
+        <div class="info-banner" id="infoBanner">
+          Please submit the documents listed below. You can mark a document as "Sent" once you've shared it with us via WhatsApp or Google Drive.
+          Our team will review each document and update the status. If there's an issue, you'll see a note explaining what's needed.
+        </div>
+        <div id="documentList"></div>
       </div>
-      <div id="documentList"></div>
+    </div>
+
+    <!-- Tab: Personal Information -->
+    <div id="ptab-personal-info" class="portal-tab-content">
+      <div class="info-form">
+        <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+          <p style="font-size:13px;color:var(--text-secondary);">Please fill in your personal details below. This helps our filing team prepare your application.</p>
+          <span id="infoSavedBadge" class="info-saved" style="display:none;">Saved</span>
+        </div>
+
+        <div class="form-section">
+          <h3>Identity</h3>
+          <div class="form-row">
+            <div class="form-group"><label>Full Legal Name</label><input type="text" id="ci_full_name"></div>
+            <div class="form-group"><label>Date of Birth</label><input type="date" id="ci_dob"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Country of Citizenship</label><input type="text" id="ci_citizenship"></div>
+            <div class="form-group"><label>Current Immigration Status</label>
+              <select id="ci_immigration_status">
+                <option value="">Select...</option>
+                <option value="Canadian Citizen">Canadian Citizen</option>
+                <option value="Permanent Resident">Permanent Resident</option>
+                <option value="Work Permit Holder">Work Permit Holder</option>
+                <option value="Study Permit Holder">Study Permit Holder</option>
+                <option value="Visitor">Visitor</option>
+                <option value="No Status / Implied Status">No Status / Implied Status</option>
+                <option value="Outside Canada">Outside Canada</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Passport Number</label><input type="text" id="ci_passport_number"></div>
+            <div class="form-group"><label>Passport Expiry Date</label><input type="date" id="ci_passport_expiry"></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Contact</h3>
+          <div class="form-row">
+            <div class="form-group"><label>Email</label><input type="email" id="ci_email"></div>
+            <div class="form-group"><label>Phone Number</label><input type="text" id="ci_phone"></div>
+          </div>
+          <div class="form-group"><label>Mailing Address</label><textarea id="ci_mailing_address" rows="2" placeholder="Street, City, Province/State, Postal Code, Country"></textarea></div>
+        </div>
+
+        <div class="form-section">
+          <h3>Education</h3>
+          <div class="form-row">
+            <div class="form-group"><label>Highest Education Level</label>
+              <select id="ci_education_level">
+                <option value="">Select...</option>
+                <option value="High School">High School</option>
+                <option value="Diploma / Certificate">Diploma / Certificate</option>
+                <option value="Bachelor's Degree">Bachelor's Degree</option>
+                <option value="Master's Degree">Master's Degree</option>
+                <option value="PhD / Doctorate">PhD / Doctorate</option>
+                <option value="Trade Certificate">Trade Certificate</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Field of Study</label><input type="text" id="ci_field_of_study" placeholder="e.g. Computer Science"></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Language</h3>
+          <div class="form-row">
+            <div class="form-group"><label>Language Test Taken</label>
+              <select id="ci_language_test">
+                <option value="">None / Not Taken</option>
+                <option value="IELTS General">IELTS General</option>
+                <option value="IELTS Academic">IELTS Academic</option>
+                <option value="CELPIP General">CELPIP General</option>
+                <option value="TEF Canada">TEF Canada</option>
+                <option value="TCF Canada">TCF Canada</option>
+              </select>
+            </div>
+            <div class="form-group"><label>&nbsp;</label><div style="font-size:12px;color:var(--text-secondary);padding-top:8px;">Enter your scores below (if applicable)</div></div>
+          </div>
+          <div class="form-row-4">
+            <div class="form-group"><label>Listening</label><input type="text" id="ci_lang_listening" placeholder="e.g. 7.5"></div>
+            <div class="form-group"><label>Reading</label><input type="text" id="ci_lang_reading" placeholder="e.g. 7.0"></div>
+            <div class="form-group"><label>Writing</label><input type="text" id="ci_lang_writing" placeholder="e.g. 6.5"></div>
+            <div class="form-group"><label>Speaking</label><input type="text" id="ci_lang_speaking" placeholder="e.g. 7.0"></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Work Experience</h3>
+          <div class="form-group"><label>Work Experience Summary</label><textarea id="ci_work_experience" rows="4" placeholder="Brief summary of your work experience, key roles, years of experience..."></textarea></div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
+          <button class="btn-save-info" onclick="saveClientInfo()">Save Information</button>
+        </div>
+      </div>
     </div>
 
     <div class="footer">
@@ -649,10 +776,52 @@
       return div.innerHTML;
     }
 
+    // Tab switching
+    function switchPortalTab(tabName, btn) {
+      document.querySelectorAll('.portal-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.portal-tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(`ptab-${tabName}`).classList.add('active');
+    }
+
+    // Client info — field mapping
+    const CI_FIELDS = ['full_name','dob','email','phone','citizenship','immigration_status','passport_number','passport_expiry','mailing_address','education_level','field_of_study','language_test','lang_listening','lang_reading','lang_writing','lang_speaking','work_experience'];
+
+    async function loadClientInfo() {
+      try {
+        const res = await fetch(`/api/client/${token}/info`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data || Object.keys(data).length === 0) return;
+        CI_FIELDS.forEach(key => {
+          const el = document.getElementById(`ci_${key}`);
+          if (el && data[key]) el.value = data[key];
+        });
+        const badge = document.getElementById('infoSavedBadge');
+        if (Object.values(data).some(v => v)) badge.style.display = 'inline-flex';
+      } catch(e) {}
+    }
+
+    async function saveClientInfo() {
+      const clientData = {};
+      CI_FIELDS.forEach(key => {
+        const el = document.getElementById(`ci_${key}`);
+        if (el) clientData[key] = el.value;
+      });
+      await fetch(`/api/client/${token}/info`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_data: clientData })
+      });
+      toast('Personal information saved!');
+      document.getElementById('infoSavedBadge').style.display = 'inline-flex';
+    }
+
     // Auto-refresh every 30 seconds
     setInterval(loadData, 30000);
 
     loadData();
+    loadClientInfo();
   </script>
 </body>
 </html>

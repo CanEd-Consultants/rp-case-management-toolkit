@@ -1,4 +1,4 @@
-const initSqlJs = require('sql.js');
+const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
@@ -9,112 +9,14 @@ if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-let db = null;
-
-// Save database to disk periodically and on changes
-function saveDb() {
-  if (db) {
-    const data = db.export();
-    const buffer = Buffer.from(data);
-    fs.writeFileSync(DB_PATH, buffer);
-  }
-}
-
-// Auto-save every 10 seconds
-setInterval(saveDb, 10000);
-
-// Wrapper to make sql.js API similar to better-sqlite3
-function createWrapper(database) {
-  const wrapper = {
-    _db: database,
-
-    prepare(sql) {
-      return {
-        _sql: sql,
-        _db: database,
-
-        run(...params) {
-          database.run(sql, params);
-          const lastId = database.exec("SELECT last_insert_rowid() as id")[0];
-          const changes = database.getRowsModified();
-          saveDb();
-          return {
-            lastInsertRowid: lastId ? lastId.values[0][0] : 0,
-            changes: changes
-          };
-        },
-
-        get(...params) {
-          const stmt = database.prepare(sql);
-          stmt.bind(params);
-          if (stmt.step()) {
-            const cols = stmt.getColumnNames();
-            const vals = stmt.get();
-            stmt.free();
-            const row = {};
-            cols.forEach((c, i) => row[c] = vals[i]);
-            return row;
-          }
-          stmt.free();
-          return undefined;
-        },
-
-        all(...params) {
-          const results = [];
-          const stmt = database.prepare(sql);
-          stmt.bind(params);
-          while (stmt.step()) {
-            const cols = stmt.getColumnNames();
-            const vals = stmt.get();
-            const row = {};
-            cols.forEach((c, i) => row[c] = vals[i]);
-            results.push(row);
-          }
-          stmt.free();
-          return results;
-        }
-      };
-    },
-
-    exec(sql) {
-      database.exec(sql);
-      saveDb();
-    },
-
-    pragma(p) {
-      try { database.exec(`PRAGMA ${p}`); } catch(e) {}
-    },
-
-    transaction(fn) {
-      return (...args) => {
-        // sql.js auto-commits, so we just run and save at the end
-        const result = fn(...args);
-        saveDb();
-        return result;
-      };
-    }
-  };
-  return wrapper;
-}
-
 async function initDatabase() {
-  const SQL = await initSqlJs();
+  const db = new Database(DB_PATH);
 
-  // Load existing database or create new
-  if (fs.existsSync(DB_PATH)) {
-    const fileBuffer = fs.readFileSync(DB_PATH);
-    db = new SQL.Database(fileBuffer);
-  } else {
-    db = new SQL.Database();
-  }
-
-  const wrapper = createWrapper(db);
-
-  wrapper.pragma('journal_mode = WAL');
-  wrapper.pragma('foreign_keys = ON');
+  db.pragma('journal_mode = WAL');
+  db.pragma('foreign_keys = ON');
 
   // Create tables
-  wrapper.exec(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
@@ -192,23 +94,141 @@ async function initDatabase() {
     );
   `);
 
-  // Seed data
-  seedData(wrapper);
+  // Migrations — add columns that may not exist yet
+  const migrateCaseCol = (col, def) => {
+    try { db.prepare(`SELECT ${col} FROM cases LIMIT 0`).get(); }
+    catch(e) { db.exec(`ALTER TABLE cases ADD COLUMN ${col} ${def}`); }
+  };
+  migrateCaseCol('kt_data', "TEXT DEFAULT '{}'");
+  migrateCaseCol('priority', "TEXT DEFAULT 'medium'");
+  migrateCaseCol('urgency_reason', "TEXT");
+  migrateCaseCol('sla_deadline', "DATE");
+  migrateCaseCol('stage', "TEXT DEFAULT 'new'");
+  migrateCaseCol('submitted_at', "DATETIME");
+  migrateCaseCol('decision', "TEXT");
+  migrateCaseCol('decision_date', "DATE");
+  migrateCaseCol('application_number', "TEXT");
+  migrateCaseCol('crm_added', "INTEGER DEFAULT 0");
+  migrateCaseCol('client_data', "TEXT DEFAULT '{}'");
+  migrateCaseCol('deleted_at', "DATETIME");
 
-  return wrapper;
+  // SLA config migrations
+  const migrateSlaCol = (col, def) => {
+    try { db.prepare(`SELECT ${col} FROM sla_config LIMIT 0`).get(); }
+    catch(e) { db.exec(`ALTER TABLE sla_config ADD COLUMN ${col} ${def}`); }
+  };
+  migrateSlaCol('points', "INTEGER DEFAULT 5");
+
+  // Case fees migrations
+  const migrateFeeCol = (col, def) => {
+    try { db.prepare(`SELECT ${col} FROM case_fees LIMIT 0`).get(); }
+    catch(e) { db.exec(`ALTER TABLE case_fees ADD COLUMN ${col} ${def}`); }
+  };
+  migrateFeeCol('govt_fee_status', "TEXT");
+
+  // User migrations
+  const migrateUserCol = (col, def) => {
+    try { db.prepare(`SELECT ${col} FROM users LIMIT 0`).get(); }
+    catch(e) { db.exec(`ALTER TABLE users ADD COLUMN ${col} ${def}`); }
+  };
+  migrateUserCol('sort_order', "INTEGER DEFAULT 0");
+  migrateUserCol('is_active', "INTEGER DEFAULT 1");
+
+  // New tables for Module A+B
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS case_fees (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      case_id INTEGER NOT NULL,
+      fee_type TEXT NOT NULL,
+      amount REAL NOT NULL,
+      description TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (case_id) REFERENCES cases(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS case_payments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      case_id INTEGER NOT NULL,
+      amount REAL NOT NULL,
+      payment_date DATE NOT NULL,
+      payment_method TEXT,
+      installment_number INTEGER,
+      notes TEXT,
+      recorded_by INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (case_id) REFERENCES cases(id),
+      FOREIGN KEY (recorded_by) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS sla_config (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      case_type_id INTEGER NOT NULL UNIQUE,
+      expected_days INTEGER NOT NULL,
+      warning_days INTEGER NOT NULL,
+      FOREIGN KEY (case_type_id) REFERENCES case_types(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      case_id INTEGER,
+      type TEXT NOT NULL,
+      message TEXT NOT NULL,
+      is_read INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      FOREIGN KEY (case_id) REFERENCES cases(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS case_notes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      case_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      note TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (case_id) REFERENCES cases(id),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS case_tasks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      case_id INTEGER NOT NULL,
+      assigned_to INTEGER,
+      title TEXT NOT NULL,
+      due_date DATE,
+      is_completed INTEGER DEFAULT 0,
+      completed_at DATETIME,
+      created_by INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (case_id) REFERENCES cases(id),
+      FOREIGN KEY (assigned_to) REFERENCES users(id),
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    );
+  `);
+
+  // Seed data
+  seedData(db);
+
+  return db;
 }
 
-function seedData(wrapper) {
-  const existingTypes = wrapper.prepare('SELECT COUNT(*) as count FROM case_types').get();
-  if (existingTypes.count > 0) return;
+function seedData(db) {
+  const existingTypes = db.prepare('SELECT COUNT(*) as count FROM case_types').get();
+  if (existingTypes.count > 0) {
+    // Skip initial seed but still add new case types below
+    addNewCaseTypes(db);
+    return;
+  }
 
   console.log('Seeding database with initial data...');
 
   const adminUser = process.env.ADMIN_USERNAME || 'admin';
   const adminPass = process.env.ADMIN_PASSWORD || 'admin123';
   const adminHash = bcrypt.hashSync(adminPass, 10);
-  wrapper.prepare('INSERT OR IGNORE INTO users (username, password_hash, full_name, role) VALUES (?, ?, ?, ?)')
+  db.prepare('INSERT OR IGNORE INTO users (username, password_hash, full_name, role) VALUES (?, ?, ?, ?)')
     .run(adminUser, adminHash, 'Administrator', 'admin');
+
+  // No sample users — admin creates team members via the Team page
 
   const caseTypes = [
     {
@@ -421,12 +441,12 @@ function seedData(wrapper) {
     },
   ];
 
-  const doInserts = wrapper.transaction(() => {
+  const doInserts = db.transaction(() => {
     for (const ct of caseTypes) {
-      const result = wrapper.prepare('INSERT INTO case_types (name, description) VALUES (?, ?)').run(ct.name, ct.description);
+      const result = db.prepare('INSERT INTO case_types (name, description) VALUES (?, ?)').run(ct.name, ct.description);
       const caseTypeId = result.lastInsertRowid;
       ct.documents.forEach((doc, index) => {
-        wrapper.prepare('INSERT INTO case_type_documents (case_type_id, document_name, description, is_required, sort_order, category) VALUES (?, ?, ?, ?, ?, ?)')
+        db.prepare('INSERT INTO case_type_documents (case_type_id, document_name, description, is_required, sort_order, category) VALUES (?, ?, ?, ?, ?, ?)')
           .run(caseTypeId, doc.name, '', doc.required, index, doc.category);
       });
     }
@@ -434,6 +454,129 @@ function seedData(wrapper) {
 
   doInserts();
   console.log(`Seeded ${caseTypes.length} case types with document templates.`);
+
+  // Seed SLA config if empty
+  const existingSLA = db.prepare('SELECT COUNT(*) as count FROM sla_config').get();
+  if (existingSLA.count === 0) {
+    const slaDefaults = [
+      // case_type_id, expected_days, warning_days
+      [1, 30, 21],   // LMIA
+      [2, 21, 14],   // Open Work Permit
+      [3, 21, 14],   // Employer-Specific WP
+      [4, 45, 30],   // Express Entry FSW
+      [5, 45, 30],   // Express Entry CEC
+      [6, 45, 30],   // PNP
+      [7, 60, 45],   // Spousal / Family Sponsorship
+      [8, 21, 14],   // Study Permit
+      [9, 14, 10],   // Visitor Visa / Super Visa
+      [10, 30, 21],  // Citizenship
+      [11, 21, 14],  // PR Card Renewal
+    ];
+    const insertSLA = db.prepare('INSERT OR IGNORE INTO sla_config (case_type_id, expected_days, warning_days) VALUES (?, ?, ?)');
+    slaDefaults.forEach(s => insertSLA.run(...s));
+    console.log('Seeded SLA configuration defaults.');
+  }
+
+  addNewCaseTypes(db);
+}
+
+function addNewCaseTypes(db) {
+  // Add new case types if they don't exist (added post-launch)
+  const newCaseTypes = [
+    {
+      name: 'PGWP (Post-Graduation Work Permit)',
+      description: 'Work permit for international graduates',
+      documents: [
+        { name: 'Valid Passport (all pages)', category: 'Identity', required: 1 },
+        { name: 'Passport-size Photographs (2)', category: 'Identity', required: 1 },
+        { name: 'Study Permit (current)', category: 'Immigration', required: 1 },
+        { name: 'Letter of Completion from DLI', category: 'Education', required: 1 },
+        { name: 'Official Transcripts', category: 'Education', required: 1 },
+        { name: 'DLI Confirmation of Program Completion', category: 'Education', required: 1 },
+        { name: 'Resume / CV', category: 'Supporting', required: 0 },
+      ],
+      sla: [14, 10, 3]
+    },
+    {
+      name: 'Bridging Work Permit',
+      description: 'Work permit while waiting for PR decision',
+      documents: [
+        { name: 'Valid Passport (all pages)', category: 'Identity', required: 1 },
+        { name: 'Passport-size Photographs (2)', category: 'Identity', required: 1 },
+        { name: 'Current Work Permit', category: 'Immigration', required: 1 },
+        { name: 'Proof of PR Application Submitted', category: 'Immigration', required: 1 },
+        { name: 'Current Employer Letter', category: 'Employment', required: 1 },
+        { name: 'Medical Exam (if applicable)', category: 'Medical', required: 0 },
+      ],
+      sla: [14, 10, 3]
+    },
+    {
+      name: 'PGWP Extension',
+      description: 'Extension of post-graduation work permit',
+      documents: [
+        { name: 'Valid Passport (all pages)', category: 'Identity', required: 1 },
+        { name: 'Passport-size Photographs (2)', category: 'Identity', required: 1 },
+        { name: 'Current PGWP', category: 'Immigration', required: 1 },
+        { name: 'Employer Letter / Job Offer', category: 'Employment', required: 1 },
+        { name: 'Pay Stubs / T4', category: 'Employment', required: 0 },
+      ],
+      sla: [14, 10, 3]
+    },
+    {
+      name: 'Study Permit Extension',
+      description: 'Extension of study permit',
+      documents: [
+        { name: 'Valid Passport (all pages)', category: 'Identity', required: 1 },
+        { name: 'Passport-size Photographs (2)', category: 'Identity', required: 1 },
+        { name: 'Current Study Permit', category: 'Immigration', required: 1 },
+        { name: 'Letter of Acceptance (new or continuing)', category: 'Education', required: 1 },
+        { name: 'Proof of Enrollment', category: 'Education', required: 1 },
+        { name: 'Proof of Funds', category: 'Financial', required: 1 },
+        { name: 'Transcripts', category: 'Education', required: 1 },
+      ],
+      sla: [14, 10, 3]
+    },
+    {
+      name: 'Work Permit Extension',
+      description: 'Extension of employer-specific or open work permit',
+      documents: [
+        { name: 'Valid Passport (all pages)', category: 'Identity', required: 1 },
+        { name: 'Passport-size Photographs (2)', category: 'Identity', required: 1 },
+        { name: 'Current Work Permit', category: 'Immigration', required: 1 },
+        { name: 'LMIA (if employer-specific)', category: 'Employment', required: 0 },
+        { name: 'Job Offer Letter / Employment Contract', category: 'Employment', required: 1 },
+        { name: 'Employer Compliance Fee Receipt', category: 'Employment', required: 0 },
+      ],
+      sla: [21, 14, 4]
+    },
+    {
+      name: 'Co-op Work Permit',
+      description: 'Work permit for co-op or internship programs',
+      documents: [
+        { name: 'Valid Passport (all pages)', category: 'Identity', required: 1 },
+        { name: 'Passport-size Photographs (2)', category: 'Identity', required: 1 },
+        { name: 'Valid Study Permit', category: 'Immigration', required: 1 },
+        { name: 'Letter from DLI confirming co-op requirement', category: 'Education', required: 1 },
+        { name: 'Co-op Offer Letter', category: 'Employment', required: 1 },
+      ],
+      sla: [14, 10, 3]
+    },
+  ];
+
+  newCaseTypes.forEach(ct => {
+    const existing = db.prepare('SELECT id FROM case_types WHERE name = ?').get(ct.name);
+    if (!existing) {
+      const result = db.prepare('INSERT INTO case_types (name, description) VALUES (?, ?)').run(ct.name, ct.description);
+      const caseTypeId = result.lastInsertRowid;
+      ct.documents.forEach((doc, index) => {
+        db.prepare('INSERT INTO case_type_documents (case_type_id, document_name, description, is_required, sort_order, category) VALUES (?, ?, ?, ?, ?, ?)')
+          .run(caseTypeId, doc.name, '', doc.required, index, doc.category);
+      });
+      db.prepare('INSERT OR IGNORE INTO sla_config (case_type_id, expected_days, warning_days, points) VALUES (?, ?, ?, ?)')
+        .run(caseTypeId, ct.sla[0], ct.sla[1], ct.sla[2]);
+      console.log(`Added case type: ${ct.name}`);
+    }
+  });
 }
 
 module.exports = { initDatabase };
