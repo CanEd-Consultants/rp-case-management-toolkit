@@ -4,9 +4,15 @@ const fs = require('fs');
 const bcrypt = require('bcryptjs');
 
 const DB_PATH = path.join(__dirname, 'data', 'checklist.db');
+const SEED_DB_PATH = path.join(__dirname, 'seed', 'checklist.db');
 const dataDir = path.join(__dirname, 'data');
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
+}
+// On first deploy: if no database exists but seed does, copy it (preserves production data)
+if (!fs.existsSync(DB_PATH) && fs.existsSync(SEED_DB_PATH)) {
+  fs.copyFileSync(SEED_DB_PATH, DB_PATH);
+  console.log('Initialized database from seed (production data).');
 }
 
 async function initDatabase() {
@@ -112,20 +118,6 @@ async function initDatabase() {
   migrateCaseCol('client_data', "TEXT DEFAULT '{}'");
   migrateCaseCol('deleted_at', "DATETIME");
 
-  // SLA config migrations
-  const migrateSlaCol = (col, def) => {
-    try { db.prepare(`SELECT ${col} FROM sla_config LIMIT 0`).get(); }
-    catch(e) { db.exec(`ALTER TABLE sla_config ADD COLUMN ${col} ${def}`); }
-  };
-  migrateSlaCol('points', "INTEGER DEFAULT 5");
-
-  // Case fees migrations
-  const migrateFeeCol = (col, def) => {
-    try { db.prepare(`SELECT ${col} FROM case_fees LIMIT 0`).get(); }
-    catch(e) { db.exec(`ALTER TABLE case_fees ADD COLUMN ${col} ${def}`); }
-  };
-  migrateFeeCol('govt_fee_status', "TEXT");
-
   // User migrations
   const migrateUserCol = (col, def) => {
     try { db.prepare(`SELECT ${col} FROM users LIMIT 0`).get(); }
@@ -205,6 +197,19 @@ async function initDatabase() {
       FOREIGN KEY (created_by) REFERENCES users(id)
     );
   `);
+
+  // Post-table-creation migrations (must run AFTER CREATE TABLE)
+  const migrateSlaCol = (col, def) => {
+    try { db.prepare(`SELECT ${col} FROM sla_config LIMIT 0`).get(); }
+    catch(e) { db.exec(`ALTER TABLE sla_config ADD COLUMN ${col} ${def}`); }
+  };
+  migrateSlaCol('points', "INTEGER DEFAULT 5");
+
+  const migrateFeeCol = (col, def) => {
+    try { db.prepare(`SELECT ${col} FROM case_fees LIMIT 0`).get(); }
+    catch(e) { db.exec(`ALTER TABLE case_fees ADD COLUMN ${col} ${def}`); }
+  };
+  migrateFeeCol('govt_fee_status', "TEXT");
 
   // Seed data
   seedData(db);
