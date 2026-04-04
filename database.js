@@ -3,8 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
 
-// Database path: always use local data/ directory
-const dataDir = path.join(__dirname, 'data');
+// Database path: use 'db' directory to avoid Railway volume mount conflicts with 'data/'
+const dataDir = path.join(__dirname, 'db');
 const DB_PATH = path.join(dataDir, 'checklist.db');
 const SEED_DB_PATH = path.join(__dirname, 'seed', 'checklist.db');
 
