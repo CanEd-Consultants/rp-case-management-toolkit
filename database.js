@@ -9,10 +9,27 @@ const dataDir = path.join(__dirname, 'data');
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
-// On first deploy: if no database exists but seed does, copy it (preserves production data)
-if (!fs.existsSync(DB_PATH) && fs.existsSync(SEED_DB_PATH)) {
-  fs.copyFileSync(SEED_DB_PATH, DB_PATH);
-  console.log('Initialized database from seed (production data).');
+// On first deploy: if no database exists OR database is empty, copy from seed
+if (fs.existsSync(SEED_DB_PATH)) {
+  if (!fs.existsSync(DB_PATH)) {
+    fs.copyFileSync(SEED_DB_PATH, DB_PATH);
+    console.log('Initialized database from seed (production data).');
+  } else {
+    // Check if existing DB is empty (fresh Railway volume creates empty file)
+    try {
+      const Database = require('better-sqlite3');
+      const testDb = new Database(DB_PATH, { readonly: true });
+      const tables = testDb.prepare("SELECT COUNT(*) as c FROM sqlite_master WHERE type='table'").get();
+      testDb.close();
+      if (tables.c === 0) {
+        fs.copyFileSync(SEED_DB_PATH, DB_PATH);
+        console.log('Replaced empty database with seed (production data).');
+      }
+    } catch(e) {
+      fs.copyFileSync(SEED_DB_PATH, DB_PATH);
+      console.log('Replaced invalid database with seed (production data).');
+    }
+  }
 }
 
 async function initDatabase() {
