@@ -12,27 +12,12 @@ if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-// On first deploy or empty DB: copy production data from seed
+// On first deploy ONLY: copy seed if no database exists at all
 if (!fs.existsSync(DB_PATH) && fs.existsSync(SEED_DB_PATH)) {
   fs.copyFileSync(SEED_DB_PATH, DB_PATH);
-  console.log('Initialized database from seed (production data).');
-} else if (fs.existsSync(DB_PATH) && fs.existsSync(SEED_DB_PATH)) {
-  // Check if DB is essentially empty (only has auto-seeded data, not real data)
-  try {
-    const TestDb = require('better-sqlite3');
-    const tdb = new TestDb(DB_PATH, { readonly: true });
-    const userCount = tdb.prepare('SELECT COUNT(*) as c FROM users').get().c;
-    tdb.close();
-    if (userCount <= 1) {
-      // Only admin user — replace with seed that has all production data
-      fs.copyFileSync(SEED_DB_PATH, DB_PATH);
-      console.log('Replaced empty database with seed (production data).');
-    }
-  } catch(e) {
-    // DB might be corrupt or have no tables — replace
-    fs.copyFileSync(SEED_DB_PATH, DB_PATH);
-    console.log('Replaced invalid database with seed.');
-  }
+  console.log('Initialized database from seed (first deploy).');
+} else if (fs.existsSync(DB_PATH)) {
+  console.log('Existing database found — preserving production data.');
 }
 console.log('Database path:', DB_PATH);
 
