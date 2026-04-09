@@ -1121,8 +1121,8 @@ app.put('/api/notifications/read-all', requireAuth, (req, res) => {
 
 // ==================== BACKUP SYSTEM ====================
 
-const BACKUP_DIR = path.join(__dirname, 'backups');
-const MAX_BACKUPS = 30; // keep last 30 backups
+// Store backups INSIDE the persistent db/ volume so they survive deploys
+const BACKUP_DIR = path.join(__dirname, 'db', 'backups');
 
 function ensureBackupDir() {
   if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
@@ -1141,17 +1141,7 @@ function createBackup(label) {
   fs.copyFileSync(DB_PATH, backupPath);
   console.log(`Backup created: ${filename}`);
 
-  // Cleanup old backups — keep only MAX_BACKUPS most recent
-  const backups = fs.readdirSync(BACKUP_DIR)
-    .filter(f => f.startsWith('backup_') && f.endsWith('.db'))
-    .sort()
-    .reverse();
-  if (backups.length > MAX_BACKUPS) {
-    backups.slice(MAX_BACKUPS).forEach(f => {
-      fs.unlinkSync(path.join(BACKUP_DIR, f));
-      console.log(`Removed old backup: ${f}`);
-    });
-  }
+  // All backups are kept forever — no deletion
   return filename;
 }
 
@@ -1228,7 +1218,7 @@ async function start() {
   app.listen(PORT, () => {
     console.log(`\n  RP Immigration Consulting - Filing Operations Toolkit`);
     console.log(`  Server running at http://localhost:${PORT}`);
-    console.log(`  Auto-backup: every 6 hours, keeping last ${MAX_BACKUPS}`);
+    console.log(`  Auto-backup: every 6 hours, all backups kept forever on persistent volume`);
     console.log(`\n  Staff login:     http://localhost:${PORT}/staff`);
     console.log(`  Default login:   admin / admin123\n`);
   });
