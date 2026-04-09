@@ -358,7 +358,7 @@ app.post('/api/cases', requireAuth, (req, res) => {
 
 app.put('/api/cases/:id', requireAuth, (req, res) => {
   const { status, assigned_to, notes, deadline, client_name, client_email, client_phone, service_details, kt_data,
-          priority, urgency_reason, stage, application_number, decision, decision_date, crm_added, sla_deadline, submitted_at } = req.body;
+          priority, urgency_reason, stage, application_number, decision, decision_date, crm_added, sla_deadline, submitted_at, case_type_id } = req.body;
   const fields = [];
   const params = [];
   const caseId = parseInt(req.params.id);
@@ -392,6 +392,14 @@ app.put('/api/cases/:id', requireAuth, (req, res) => {
   if (crm_added !== undefined) { fields.push('crm_added = ?'); params.push(crm_added ? 1 : 0); }
   if (sla_deadline !== undefined) { fields.push('sla_deadline = ?'); params.push(sla_deadline); }
   if (submitted_at !== undefined) { fields.push('submitted_at = ?'); params.push(submitted_at); }
+  if (case_type_id !== undefined) {
+    // Only admin or case creator can change case type
+    const c = db.prepare('SELECT created_by FROM cases WHERE id = ?').get(caseId);
+    if (!isAdmin(role) && (!c || c.created_by !== req.session.user.id)) {
+      return res.status(403).json({ error: 'Only admin or case creator can change case type' });
+    }
+    fields.push('case_type_id = ?'); params.push(parseInt(case_type_id));
+  }
 
   if (fields.length === 0) return res.status(400).json({ error: 'No fields to update' });
 

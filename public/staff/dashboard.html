@@ -251,6 +251,13 @@
     .search-result-item .sr-name { font-weight: 600; }
     .search-result-item .sr-meta { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
 
+    /* Sortable table headers */
+    th.sortable { cursor: pointer; user-select: none; position: relative; padding-right: 18px; }
+    th.sortable:hover { color: var(--primary-light); }
+    th.sortable::after { content: '⇅'; position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 10px; opacity: 0.4; }
+    th.sortable.sort-asc::after { content: '↑'; opacity: 0.8; }
+    th.sortable.sort-desc::after { content: '↓'; opacity: 0.8; }
+
     /* Spinner */
     .spinner { width: 24px; height: 24px; border: 2.5px solid var(--border); border-top-color: var(--primary-light); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto; }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -275,10 +282,44 @@
       .sidebar.mobile-open { transform: translateX(0); }
       .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 299; }
       .mobile-overlay.show { display: block; }
-      .main { margin-left: 0 !important; padding: 16px !important; }
-      .global-search-input { width: 160px; }
+      .main { margin-left: 0 !important; padding: 12px !important; }
+      .global-search-input { width: 120px; font-size: 12px; }
       .form-row, .form-row-3 { grid-template-columns: 1fr; }
-      .finance-summary { grid-template-columns: 1fr; }
+      .finance-summary { grid-template-columns: 1fr 1fr; }
+      .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .stat-card { padding: 12px; }
+      .stat-card .value { font-size: 20px; }
+      .page-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .page-header h1 { font-size: 17px; }
+      /* Stack dashboard 2-col grid on mobile */
+      .dashboard-grid { grid-template-columns: 1fr !important; }
+      /* Tables scroll horizontally on mobile */
+      .card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      table { min-width: 560px; }
+      /* Case detail 2-col cards stack */
+      .case-info-grid { grid-template-columns: 1fr !important; }
+      /* Tab bar scroll */
+      .tab-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
+      .tab-btn { white-space: nowrap; flex-shrink: 0; padding: 8px 12px; font-size: 12px; }
+      /* Search bar stack */
+      .search-bar { gap: 6px; }
+      .search-bar input, .search-bar select { font-size: 12px; min-width: 0; }
+      /* Modals full-width on mobile */
+      .modal { width: 95% !important; max-width: 95% !important; margin: 10px; }
+      /* Finance cards */
+      .finance-card { padding: 12px; }
+      .finance-card .fin-value { font-size: 18px; }
+      /* KT summary rows stack */
+      .kt-summary-row { flex-direction: column; gap: 2px; }
+      .kt-summary-label { width: auto; font-size: 11px; }
+      /* Doc list responsive */
+      .doc-list-item { flex-wrap: wrap; }
+      .doc-actions { width: 100%; justify-content: flex-end; margin-top: 4px; }
+      /* Notification dropdown */
+      .notif-dropdown { width: 280px; right: -40px; }
+      /* Drill-down header */
+      .drill-down-header { padding: 10px 14px; }
+      .drill-down-header h3 { font-size: 13px; }
     }
 
     @media (min-width: 769px) {
@@ -338,12 +379,14 @@
       </div>
       <div id="statsRow" class="stats-row"></div>
       <div id="staleCasesWidget"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-        <div class="card">
-          <div class="card-header"><h3>Staff Workload</h3></div>
-          <div class="card-body" id="workloadContent"></div>
+      <div class="dashboard-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div style="order:2;">
+          <div class="card">
+            <div class="card-header"><h3>Staff Workload</h3></div>
+            <div class="card-body" id="workloadContent"></div>
+          </div>
         </div>
-        <div>
+        <div style="order:1;">
           <div class="card">
             <div class="card-header">
               <h3>Sales Leaderboard</h3>
@@ -428,7 +471,19 @@
         </select>
       </div>
       <div class="card"><table>
-        <thead><tr><th></th><th>Client</th><th>Case Type</th><th>Filing Staff</th><th>Sales Staff</th><th>Stage</th><th>SLA</th><th>Balance</th><th>Created</th><th id="deleteColHeader" style="display:none;">Delete</th></tr></thead>
+        <thead><tr>
+          <th></th>
+          <th class="sortable" onclick="sortCases('client_name',this)">Client</th>
+          <th class="sortable" onclick="sortCases('case_type_name',this)">Case Type</th>
+          <th class="sortable" onclick="sortCases('assigned_to_name',this)">Filing Staff</th>
+          <th class="sortable" onclick="sortCases('created_by_name',this)">Sales Staff</th>
+          <th class="sortable" onclick="sortCases('stage',this)">Stage</th>
+          <th class="sortable" onclick="sortCases('sla_deadline',this)">SLA</th>
+          <th class="sortable" onclick="sortCases('balance_due',this)">Balance</th>
+          <th class="sortable" onclick="sortCases('created_at',this)">Created</th>
+          <th></th>
+          <th id="deleteColHeader" style="display:none;">Delete</th>
+        </tr></thead>
         <tbody id="casesTableBody"></tbody>
       </table></div>
     </div>
@@ -648,6 +703,31 @@
     </div>
   </div>
 
+  <!-- Edit Case Modal -->
+  <div class="modal-overlay" id="editCaseModal">
+    <div class="modal" style="max-width:560px;">
+      <div class="modal-header"><h2>Edit Case</h2><button class="modal-close" onclick="closeModal('editCaseModal')">&times;</button></div>
+      <div class="modal-body">
+        <div class="form-group"><label>Client Full Name *</label><input type="text" id="editCase_name"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Email</label><input type="email" id="editCase_email"></div>
+          <div class="form-group"><label>Phone</label><input type="text" id="editCase_phone"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Case Type *</label><select id="editCase_caseType"></select></div>
+          <div class="form-group"><label>Priority</label><select id="editCase_priority"><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Deadline</label><input type="date" id="editCase_deadline"></div>
+          <div class="form-group"><label>Application #</label><input type="text" id="editCase_appNum"></div>
+        </div>
+        <div class="form-group"><label>Service Details / Payment Notes</label><input type="text" id="editCase_service"></div>
+        <div class="form-group"><label>Notes for Filing Team</label><textarea id="editCase_notes" rows="3"></textarea></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('editCaseModal')">Cancel</button><button class="btn btn-primary" onclick="submitEditCase()">Save Changes</button></div>
+    </div>
+  </div>
+
   <!-- Reset Password Modal -->
   <div class="modal-overlay" id="resetPwdModal">
     <div class="modal" style="max-width:400px;">
@@ -798,9 +878,14 @@
         pollNotifications();
         setInterval(pollNotifications, 30000);
 
-        // F3: Restore last view from session storage, but not case-detail
+        // F3: Restore last view from session storage, including case-detail
         const lastView = sessionStorage.getItem('lastView');
-        if (lastView && lastView !== 'case-detail') {
+        if (lastView === 'case-detail') {
+          const savedCaseId = sessionStorage.getItem('lastCaseId');
+          if (savedCaseId) {
+            openCaseDetail(parseInt(savedCaseId));
+          }
+        } else if (lastView) {
           showView(lastView);
         }
       } catch (e) { window.location.href = '/staff'; }
@@ -1120,6 +1205,23 @@
       } catch(e) { showError('casesTableBody', 'Failed to load cases'); }
     }
 
+    // Sort state for All Cases table
+    let caseSortField = 'created_at';
+    let caseSortDir = 'desc';
+
+    function sortCases(field, thEl) {
+      if (caseSortField === field) {
+        caseSortDir = caseSortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        caseSortField = field;
+        caseSortDir = 'asc';
+      }
+      // Update header styles
+      document.querySelectorAll('#view-cases th.sortable').forEach(h => h.classList.remove('sort-asc','sort-desc'));
+      if (thEl) thEl.classList.add(caseSortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+      renderCases();
+    }
+
     function renderCases() {
       const search = document.getElementById('searchCases')?.value?.toLowerCase() || '';
       const stage = document.getElementById('filterStage')?.value || '';
@@ -1136,16 +1238,28 @@
       if (createdByFilter) filtered = filtered.filter(c => String(c.created_by) === createdByFilter);
       if (assignedToFilter) filtered = filtered.filter(c => String(c.assigned_to) === assignedToFilter);
 
+      // Apply sorting
+      filtered = [...filtered].sort((a, b) => {
+        let va = a[caseSortField], vb = b[caseSortField];
+        if (caseSortField === 'balance_due') { va = parseFloat(va) || 0; vb = parseFloat(vb) || 0; }
+        else if (caseSortField === 'created_at' || caseSortField === 'sla_deadline') { va = va || ''; vb = vb || ''; }
+        else { va = (va || '').toString().toLowerCase(); vb = (vb || '').toString().toLowerCase(); }
+        if (va < vb) return caseSortDir === 'asc' ? -1 : 1;
+        if (va > vb) return caseSortDir === 'asc' ? 1 : -1;
+        return 0;
+      });
+
       // F7: Delete column only for admin
       const showDeleteCol = isAdmin();
 
       document.getElementById('casesTableBody').innerHTML = filtered.length === 0 ?
-        `<tr><td colspan="${showDeleteCol ? 10 : 9}" style="text-align:center;color:var(--text-secondary);padding:24px;">No cases found.</td></tr>` :
+        `<tr><td colspan="${showDeleteCol ? 11 : 10}" style="text-align:center;color:var(--text-secondary);padding:24px;">No cases found.</td></tr>` :
         filtered.map(c => {
           const progress = c.total_docs > 0 ? Math.round((c.accepted_docs / c.total_docs) * 100) : 0;
           const sla = getSlaTag(c);
           const bal = parseFloat(c.balance_due) || 0;
           const isDeleted = !!c.deleted_at;
+          const canEdit = isAdmin() || isTeamLead() || c.created_by === currentUser.id;
           return `<tr style="cursor:pointer" class="${isDeleted ? 'row-deleted' : ''}" onclick="openCaseDetail(${c.id})">
             <td><span class="priority-dot ${c.priority || 'medium'}"></span></td>
             <td><strong>${esc(c.client_name)}</strong><br><span style="font-size:10px;color:var(--text-secondary);">${esc(c.client_email || '')}</span></td>
@@ -1156,12 +1270,26 @@
             <td>${sla}</td>
             <td style="font-size:11px;font-weight:600;color:${bal > 0 ? 'var(--danger)' : 'var(--success)'};">$${bal.toFixed(0)}</td>
             <td style="font-size:11px;">${fmtDate(c.created_at)}</td>
+            <td onclick="event.stopPropagation();">${canEdit ? `<button class="btn btn-outline btn-xs" onclick="quickEditCase(${c.id})">Edit</button>` : ''}</td>
             ${showDeleteCol ? `<td onclick="event.stopPropagation();">${isDeleted ?
               `<button class="btn btn-xs btn-outline" onclick="restoreCase(${c.id})">Restore</button>` :
               `<button class="btn-trash" onclick="softDeleteCase(${c.id})" title="Delete case">🗑</button>`
             }</td>` : ''}
           </tr>`;
         }).join('');
+    }
+
+    // Quick edit from All Cases table - fetch case data then open edit modal
+    async function quickEditCase(caseId) {
+      try {
+        const c = await (await fetch(`/api/cases/${caseId}`)).json();
+        openEditCaseModal({
+          id: c.id, client_name: c.client_name, client_email: c.client_email,
+          client_phone: c.client_phone, case_type_id: c.case_type_id, priority: c.priority,
+          deadline: c.deadline, application_number: c.application_number,
+          service_details: c.service_details, notes: c.notes, created_by: c.created_by
+        });
+      } catch(e) { toast('Error loading case', 'error'); }
     }
 
     // ==================== CASE DELETION ====================
@@ -1224,6 +1352,7 @@
     // ==================== CASE DETAIL (F5: finance for creators, F7: no delete button) ====================
     async function openCaseDetail(id) {
       currentCaseId = id;
+      sessionStorage.setItem('lastCaseId', id);
       showLoading('caseDetailContent');
       showView('case-detail');
       try {
@@ -1232,8 +1361,10 @@
 
       document.getElementById('caseDetailTitle').textContent = c.client_name;
 
-      // F7: Remove delete button from case detail entirely
-      document.getElementById('caseDetailActions').innerHTML = '';
+      // Edit button for admin, team_lead, or case creator
+      document.getElementById('caseDetailActions').innerHTML = canEditCase(c)
+        ? `<button class="btn btn-outline btn-sm" onclick='openEditCaseModal(${JSON.stringify({id:c.id, client_name:c.client_name, client_email:c.client_email, client_phone:c.client_phone, case_type_id:c.case_type_id, priority:c.priority, deadline:c.deadline, application_number:c.application_number, service_details:c.service_details, notes:c.notes, created_by:c.created_by}).replace(/'/g,"&#39;")})'>Edit Case</button>`
+        : '';
 
       const progress = c.documents.length > 0 ? Math.round((c.documents.filter(d => d.status === 'accepted').length / c.documents.length) * 100) : 0;
       const clientLink = `${window.location.origin}/portal/${c.client_token}`;
@@ -1342,7 +1473,7 @@
 
       document.getElementById('caseDetailContent').innerHTML = `
         <!-- Case info cards -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div class="case-info-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
           <div class="card">
             <div class="card-header"><h3>Case Information</h3></div>
             <div class="card-body" style="font-size:12px;">
@@ -1455,9 +1586,9 @@
             <div class="card-header"><h3>Filing Fees</h3><button class="btn btn-primary btn-sm" onclick="openFeeModal()">+ Add Fee</button></div>
             <div class="card-body">
               ${filingFees.length === 0 ? '<p style="color:var(--text-secondary);font-size:12px;">No filing fees recorded.</p>' :
-              `<table><thead><tr><th>Type</th><th>Amount</th><th>Description</th><th></th></tr></thead><tbody>
-              ${filingFees.map(f => `<tr><td>${esc(f.fee_type)}</td><td>$${f.amount.toFixed(2)}</td><td>${esc(f.description||'')}</td><td><button class="btn btn-outline btn-xs" onclick="openEditFeeModal(${f.id},'${esc(f.fee_type)}',${f.amount},'${esc(f.description||'')}')">Edit</button> <button class="btn btn-xs" style="color:var(--danger);background:none;" onclick="deleteFee(${f.id})">✕</button></td></tr>`).join('')}
-              <tr style="font-weight:600;"><td>Total Filing Fees</td><td>$${filingFeesTotal.toFixed(2)}</td><td></td><td></td></tr>
+              `<table><thead><tr><th style="width:25%;">Type</th><th style="width:20%;text-align:right;">Amount</th><th style="width:35%;">Description</th><th style="width:20%;text-align:right;">Actions</th></tr></thead><tbody>
+              ${filingFees.map(f => `<tr><td>${esc(f.fee_type)}</td><td style="text-align:right;">$${f.amount.toFixed(2)}</td><td>${esc(f.description||'')}</td><td style="text-align:right;"><button class="btn btn-outline btn-xs" onclick="openEditFeeModal(${f.id},'${esc(f.fee_type)}',${f.amount},'${esc(f.description||'')}')">Edit</button> <button class="btn btn-xs" style="color:var(--danger);background:none;" onclick="deleteFee(${f.id})">✕</button></td></tr>`).join('')}
+              <tr style="font-weight:600;border-top:2px solid var(--border);"><td>Total Filing Fees</td><td style="text-align:right;">$${filingFeesTotal.toFixed(2)}</td><td></td><td></td></tr>
               </tbody></table>`}
             </div>
           </div>
@@ -1465,9 +1596,9 @@
             <div class="card-header"><h3>Government Fees</h3><button class="btn btn-primary btn-sm" onclick="openFeeModalGovt()">+ Add Govt Fee</button></div>
             <div class="card-body">
               ${govtFees.length === 0 ? '<p style="color:var(--text-secondary);font-size:12px;">No government fees recorded.</p>' :
-              `<table><thead><tr><th>Type</th><th>Amount</th><th>Description</th><th></th></tr></thead><tbody>
-              ${govtFees.map(f => `<tr><td>${esc(f.fee_type)}</td><td>$${f.amount.toFixed(2)}</td><td>${esc(f.description||'')}</td><td><button class="btn btn-outline btn-xs" onclick="openEditFeeModal(${f.id},'${esc(f.fee_type)}',${f.amount},'${esc(f.description||'')}')">Edit</button> <button class="btn btn-xs" style="color:var(--danger);background:none;" onclick="deleteFee(${f.id})">✕</button></td></tr>`).join('')}
-              <tr style="font-weight:600;"><td>Total Govt Fees</td><td>$${govtFeesTotal.toFixed(2)}</td><td></td><td></td></tr>
+              `<table><thead><tr><th style="width:25%;">Type</th><th style="width:20%;text-align:right;">Amount</th><th style="width:35%;">Description</th><th style="width:20%;text-align:right;">Actions</th></tr></thead><tbody>
+              ${govtFees.map(f => `<tr><td>${esc(f.fee_type)}</td><td style="text-align:right;">$${f.amount.toFixed(2)}</td><td>${esc(f.description||'')}</td><td style="text-align:right;"><button class="btn btn-outline btn-xs" onclick="openEditFeeModal(${f.id},'${esc(f.fee_type)}',${f.amount},'${esc(f.description||'')}')">Edit</button> <button class="btn btn-xs" style="color:var(--danger);background:none;" onclick="deleteFee(${f.id})">✕</button></td></tr>`).join('')}
+              <tr style="font-weight:600;border-top:2px solid var(--border);"><td>Total Govt Fees</td><td style="text-align:right;">$${govtFeesTotal.toFixed(2)}</td><td></td><td></td></tr>
               </tbody></table>`}
             </div>
           </div>
@@ -1475,9 +1606,9 @@
             <div class="card-header"><h3>Payments</h3><button class="btn btn-primary btn-sm" onclick="openPaymentModal()">+ Record Payment</button></div>
             <div class="card-body">
               ${balance.payments.length === 0 ? '<p style="color:var(--text-secondary);font-size:12px;">No payments recorded.</p>' :
-              `<table><thead><tr><th>Date</th><th>Amount</th><th>Method</th><th>#</th><th>Notes</th><th></th></tr></thead><tbody>
-              ${balance.payments.map(p => `<tr><td>${p.payment_date}</td><td>$${p.amount.toFixed(2)}</td><td>${esc(p.payment_method||'')}</td><td>${p.installment_number||''}</td><td>${esc(p.notes||'')}</td><td><button class="btn btn-xs" style="color:var(--danger);background:none;" onclick="deletePayment(${p.id})">✕</button></td></tr>`).join('')}
-              <tr style="font-weight:600;"><td>Total Paid</td><td>$${balance.total_paid.toFixed(2)}</td><td colspan="4"></td></tr>
+              `<table><thead><tr><th>Date</th><th style="text-align:right;">Amount</th><th>Method</th><th style="text-align:center;">#</th><th>Notes</th><th style="text-align:right;"></th></tr></thead><tbody>
+              ${balance.payments.map(p => `<tr><td>${p.payment_date}</td><td style="text-align:right;">$${p.amount.toFixed(2)}</td><td>${esc(p.payment_method||'')}</td><td style="text-align:center;">${p.installment_number||''}</td><td>${esc(p.notes||'')}</td><td style="text-align:right;"><button class="btn btn-xs" style="color:var(--danger);background:none;" onclick="deletePayment(${p.id})">✕</button></td></tr>`).join('')}
+              <tr style="font-weight:600;border-top:2px solid var(--border);"><td>Total Paid</td><td style="text-align:right;">$${balance.total_paid.toFixed(2)}</td><td colspan="4"></td></tr>
               </tbody></table>`}
               <div style="margin-top:12px;padding:10px;background:${filingBalanceDue > 0 ? '#fefce8' : '#ecfdf5'};border-radius:6px;font-size:13px;font-weight:600;">
                 Balance Due (filing fees): $${filingBalanceDue.toFixed(2)}
@@ -1839,6 +1970,50 @@
     async function markCRM(id) {
       await fetch(`/api/cases/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ crm_added: 1 }) });
       toast('Marked as added to CRM', 'success'); openCaseDetail(id);
+    }
+
+    // ==================== EDIT CASE ====================
+    let editCaseData = null;
+    function canEditCase(c) {
+      return isAdmin() || isTeamLead() || c.created_by === currentUser.id;
+    }
+    function openEditCaseModal(caseData) {
+      editCaseData = caseData;
+      document.getElementById('editCase_name').value = caseData.client_name || '';
+      document.getElementById('editCase_email').value = caseData.client_email || '';
+      document.getElementById('editCase_phone').value = caseData.client_phone || '';
+      document.getElementById('editCase_caseType').innerHTML = buildCaseTypeOptions();
+      document.getElementById('editCase_caseType').value = caseData.case_type_id || '';
+      document.getElementById('editCase_priority').value = caseData.priority || 'medium';
+      document.getElementById('editCase_deadline').value = caseData.deadline || '';
+      document.getElementById('editCase_appNum').value = caseData.application_number || '';
+      document.getElementById('editCase_service').value = caseData.service_details || '';
+      document.getElementById('editCase_notes').value = caseData.notes || '';
+      openModal('editCaseModal');
+    }
+    async function submitEditCase() {
+      const name = document.getElementById('editCase_name').value.trim();
+      if (!name) { toast('Client name is required', 'error'); return; }
+      const payload = {
+        client_name: name,
+        client_email: document.getElementById('editCase_email').value,
+        client_phone: document.getElementById('editCase_phone').value,
+        case_type_id: document.getElementById('editCase_caseType').value,
+        priority: document.getElementById('editCase_priority').value,
+        deadline: document.getElementById('editCase_deadline').value || null,
+        application_number: document.getElementById('editCase_appNum').value,
+        service_details: document.getElementById('editCase_service').value,
+        notes: document.getElementById('editCase_notes').value,
+      };
+      try {
+        const res = await fetch(`/api/cases/${editCaseData.id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        const result = await res.json();
+        if (result.error) { toast(result.error, 'error'); return; }
+        toast('Case updated', 'success');
+        closeModal('editCaseModal');
+        openCaseDetail(editCaseData.id);
+        loadCases();
+      } catch(e) { toast('Error updating case', 'error'); }
     }
 
     function openDocStatusModal(docId, name, status, note, ref) {
