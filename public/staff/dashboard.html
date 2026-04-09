@@ -573,6 +573,21 @@
           <button class="btn btn-outline" onclick="window.location.href='/api/export/clients'">Export Client Info (CSV)</button>
         </div>
       </div>
+
+      <!-- Backup Section (admin only) -->
+      <div class="card" style="margin-top:24px;">
+        <div class="card-header">
+          <h3>Database Backups</h3>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary btn-sm" onclick="window.location.href='/api/backup/download'">Download Live Backup</button>
+            <button class="btn btn-outline btn-sm" onclick="createServerBackup()">Create Server Backup</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">Backups are created automatically every 6 hours and on every server restart. Last 30 backups are kept on the server. <strong>Download a backup regularly</strong> and save it to your computer or cloud storage for extra safety.</p>
+          <div id="backupListContent"><div class="spinner" style="margin:16px auto;"></div></div>
+        </div>
+      </div>
     </div>
 
     <!-- SLA Config View (admin only) -->
@@ -2106,6 +2121,7 @@
     // ==================== TEAM ====================
     async function loadTeam() {
       await loadUsers();
+      loadBackupList();
       const isAdminUser = isAdmin();
       document.getElementById('teamTableBody').innerHTML = allUsers.map((u, idx) => `<tr>
         <td>${esc(u.full_name)}</td>
@@ -2119,6 +2135,47 @@
           ${u.role!=='admin'?`<button class="btn btn-xs btn-danger" onclick="deleteUser(${u.id})" style="margin-left:4px;">Remove</button>`:''}
         </td>
       </tr>`).join('');
+    }
+
+    // ==================== BACKUPS ====================
+    async function loadBackupList() {
+      const el = document.getElementById('backupListContent');
+      if (!el) return;
+      try {
+        const backups = await (await fetch('/api/backup/list')).json();
+        if (backups.length === 0) {
+          el.innerHTML = '<p style="color:var(--text-secondary);font-size:12px;text-align:center;padding:12px;">No backups yet. One will be created automatically on next server restart.</p>';
+          return;
+        }
+        el.innerHTML = `<table>
+          <thead><tr><th>Backup</th><th>Size</th><th>Created</th><th></th></tr></thead>
+          <tbody>${backups.map(b => {
+            const type = b.filename.includes('_manual_') ? 'Manual' : b.filename.includes('_startup_') ? 'Startup' : 'Auto';
+            const size = b.size > 1024*1024 ? (b.size/(1024*1024)).toFixed(1)+' MB' : (b.size/1024).toFixed(0)+' KB';
+            return `<tr>
+              <td style="font-size:12px;"><span class="badge ${type==='Manual'?'badge-assigned':type==='Startup'?'badge-new':'badge-active'}">${type}</span> <span style="font-size:11px;color:var(--text-secondary);">${esc(b.filename)}</span></td>
+              <td style="font-size:12px;">${size}</td>
+              <td style="font-size:12px;">${fmtDate(b.created)}</td>
+              <td><button class="btn btn-outline btn-xs" onclick="window.location.href='/api/backup/download/${esc(b.filename)}'">Download</button></td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>`;
+      } catch(e) {
+        el.innerHTML = '<p style="color:var(--text-secondary);font-size:12px;">Unable to load backup list.</p>';
+      }
+    }
+
+    async function createServerBackup() {
+      try {
+        const res = await fetch('/api/backup/create', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          toast('Backup created: ' + data.filename, 'success');
+          loadBackupList();
+        } else {
+          toast(data.error || 'Backup failed', 'error');
+        }
+      } catch(e) { toast('Error creating backup', 'error'); }
     }
 
     function openAddUserModal() { ['newUser_name','newUser_username','newUser_password'].forEach(id=>document.getElementById(id).value=''); openModal('addUserModal'); }

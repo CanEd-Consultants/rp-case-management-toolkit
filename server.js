@@ -4,7 +4,7 @@ const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
-const { initDatabase } = require('./database');
+const { initDatabase, DB_PATH } = require('./database');
 
 // Load .env file if present
 const envPath = path.join(__dirname, '.env');
@@ -1119,6 +1119,89 @@ app.put('/api/notifications/read-all', requireAuth, (req, res) => {
   res.json({ success: true });
 });
 
+// ==================== BACKUP SYSTEM ====================
+
+const BACKUP_DIR = path.join(__dirname, 'backups');
+const MAX_BACKUPS = 30; // keep last 30 backups
+
+function ensureBackupDir() {
+  if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
+}
+
+function createBackup(label) {
+  ensureBackupDir();
+  if (!fs.existsSync(DB_PATH)) return null;
+
+  // Checkpoint WAL to ensure all data is in the main DB file
+  try { if (db) db.pragma('wal_checkpoint(TRUNCATE)'); } catch(e) {}
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0, 19);
+  const filename = `backup_${label || 'auto'}_${timestamp}.db`;
+  const backupPath = path.join(BACKUP_DIR, filename);
+  fs.copyFileSync(DB_PATH, backupPath);
+  console.log(`Backup created: ${filename}`);
+
+  // Cleanup old backups — keep only MAX_BACKUPS most recent
+  const backups = fs.readdirSync(BACKUP_DIR)
+    .filter(f => f.startsWith('backup_') && f.endsWith('.db'))
+    .sort()
+    .reverse();
+  if (backups.length > MAX_BACKUPS) {
+    backups.slice(MAX_BACKUPS).forEach(f => {
+      fs.unlinkSync(path.join(BACKUP_DIR, f));
+      console.log(`Removed old backup: ${f}`);
+    });
+  }
+  return filename;
+}
+
+// Admin: download live database backup
+app.get('/api/backup/download', requireRole('admin'), (req, res) => {
+  try {
+    if (db) db.pragma('wal_checkpoint(TRUNCATE)');
+  } catch(e) {}
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  res.setHeader('Content-Disposition', `attachment; filename="rp-cms-backup-${timestamp}.db"`);
+  res.setHeader('Content-Type', 'application/x-sqlite3');
+  const stream = fs.createReadStream(DB_PATH);
+  stream.pipe(res);
+});
+
+// Admin: trigger manual backup (saved on server)
+app.post('/api/backup/create', requireRole('admin'), (req, res) => {
+  const filename = createBackup('manual');
+  if (filename) {
+    res.json({ success: true, filename, message: 'Backup created on server' });
+  } else {
+    res.status(500).json({ error: 'Backup failed — database file not found' });
+  }
+});
+
+// Admin: list available backups on server
+app.get('/api/backup/list', requireRole('admin'), (req, res) => {
+  ensureBackupDir();
+  const backups = fs.readdirSync(BACKUP_DIR)
+    .filter(f => f.startsWith('backup_') && f.endsWith('.db'))
+    .map(f => {
+      const stat = fs.statSync(path.join(BACKUP_DIR, f));
+      return { filename: f, size: stat.size, created: stat.mtime.toISOString() };
+    })
+    .sort((a, b) => b.created.localeCompare(a.created));
+  res.json(backups);
+});
+
+// Admin: download a specific server-side backup
+app.get('/api/backup/download/:filename', requireRole('admin'), (req, res) => {
+  const filename = req.params.filename.replace(/[^a-zA-Z0-9_\-\.]/g, '');
+  const filePath = path.join(BACKUP_DIR, filename);
+  if (!fs.existsSync(filePath) || !filename.startsWith('backup_')) {
+    return res.status(404).json({ error: 'Backup not found' });
+  }
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.setHeader('Content-Type', 'application/x-sqlite3');
+  fs.createReadStream(filePath).pipe(res);
+});
+
 // ==================== SERVE PAGES ====================
 
 app.get('/', (req, res) => res.redirect('/staff'));
@@ -1130,9 +1213,22 @@ app.get('/portal/:token', (req, res) => res.sendFile(path.join(__dirname, 'publi
 
 async function start() {
   db = await initDatabase();
+
+  // Safety backup on every startup (before app serves any requests)
+  try {
+    createBackup('startup');
+    console.log('  Startup safety backup created.');
+  } catch(e) { console.error('Startup backup failed:', e.message); }
+
+  // Scheduled auto-backup every 6 hours
+  setInterval(() => {
+    try { createBackup('auto'); } catch(e) { console.error('Auto backup failed:', e.message); }
+  }, 6 * 60 * 60 * 1000);
+
   app.listen(PORT, () => {
     console.log(`\n  RP Immigration Consulting - Filing Operations Toolkit`);
     console.log(`  Server running at http://localhost:${PORT}`);
+    console.log(`  Auto-backup: every 6 hours, keeping last ${MAX_BACKUPS}`);
     console.log(`\n  Staff login:     http://localhost:${PORT}/staff`);
     console.log(`  Default login:   admin / admin123\n`);
   });

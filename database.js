@@ -590,4 +590,4 @@ function addNewCaseTypes(db) {
   });
 }
 
-module.exports = { initDatabase };
+module.exports = { initDatabase, DB_PATH };
