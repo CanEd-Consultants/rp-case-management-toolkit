@@ -1120,9 +1120,27 @@ app.put('/api/notifications/read-all', requireAuth, (req, res) => {
 });
 
 // ==================== BACKUP SYSTEM ====================
+// Two-tier backup: local (persistent volume) + off-site (GitHub releases)
+//
+// LOCAL (db/backups/ on Railway persistent volume):
+//   - Startup backup on every deploy/restart
+//   - Auto-backup every 6 hours
+//   - Smart rotation: keep last 7 daily, last 4 weekly, all monthly
+//   - Saves space while keeping full history coverage
+//
+// OFF-SITE (GitHub release on the repo):
+//   - Pushes a backup to GitHub as a release asset on every startup
+//   - Requires GITHUB_TOKEN env var (fine-grained PAT with Contents: write)
+//   - Survives Railway volume failure, account deletion, anything
+//
+// ADMIN UI:
+//   - Download live backup to their own computer anytime
+//   - View & download server-side backups
+//   - Trigger manual backup
 
-// Store backups INSIDE the persistent db/ volume so they survive deploys
 const BACKUP_DIR = path.join(__dirname, 'db', 'backups');
+const GITHUB_REPO = 'CanEd-Consultants/rp-case-management-toolkit';
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || null;
 
 function ensureBackupDir() {
   if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
@@ -1139,29 +1157,179 @@ function createBackup(label) {
   const filename = `backup_${label || 'auto'}_${timestamp}.db`;
   const backupPath = path.join(BACKUP_DIR, filename);
   fs.copyFileSync(DB_PATH, backupPath);
-  console.log(`Backup created: ${filename}`);
+  console.log(`  Backup created: ${filename}`);
 
-  // All backups are kept forever — no deletion
+  // Smart rotation — keep storage efficient
+  rotateBackups();
+
   return filename;
+}
+
+function rotateBackups() {
+  const files = fs.readdirSync(BACKUP_DIR)
+    .filter(f => f.startsWith('backup_') && f.endsWith('.db'))
+    .map(f => ({ name: f, time: fs.statSync(path.join(BACKUP_DIR, f)).mtime }))
+    .sort((a, b) => b.time - a.time); // newest first
+
+  const now = new Date();
+  const keep = new Set();
+
+  // Always keep: all from last 7 days
+  files.forEach(f => {
+    const daysOld = (now - f.time) / (1000 * 60 * 60 * 24);
+    if (daysOld <= 7) keep.add(f.name);
+  });
+
+  // Keep: one per week for last 30 days
+  for (let w = 1; w <= 4; w++) {
+    const weekStart = new Date(now - w * 7 * 24 * 60 * 60 * 1000);
+    const weekEnd = new Date(now - (w - 1) * 7 * 24 * 60 * 60 * 1000);
+    const weekFile = files.find(f => f.time >= weekStart && f.time < weekEnd);
+    if (weekFile) keep.add(weekFile.name);
+  }
+
+  // Keep: one per month forever (first backup of each month)
+  const monthBuckets = {};
+  files.forEach(f => {
+    const key = `${f.time.getFullYear()}-${String(f.time.getMonth()+1).padStart(2,'0')}`;
+    if (!monthBuckets[key]) monthBuckets[key] = f;
+  });
+  Object.values(monthBuckets).forEach(f => keep.add(f.name));
+
+  // Always keep: all manual and startup backups from last 30 days
+  files.forEach(f => {
+    const daysOld = (now - f.time) / (1000 * 60 * 60 * 24);
+    if (daysOld <= 30 && (f.name.includes('_manual_') || f.name.includes('_startup_'))) {
+      keep.add(f.name);
+    }
+  });
+
+  // Always keep the newest 5 no matter what
+  files.slice(0, 5).forEach(f => keep.add(f.name));
+
+  // Delete the rest
+  let deleted = 0;
+  files.forEach(f => {
+    if (!keep.has(f.name)) {
+      fs.unlinkSync(path.join(BACKUP_DIR, f.name));
+      deleted++;
+    }
+  });
+  if (deleted > 0) console.log(`  Backup rotation: removed ${deleted} old backups, keeping ${keep.size}`);
+}
+
+// Push backup to GitHub as a release asset (off-site, survives everything)
+async function pushBackupToGitHub(label) {
+  if (!GITHUB_TOKEN) return;
+
+  try {
+    if (db) db.pragma('wal_checkpoint(TRUNCATE)');
+  } catch(e) {}
+
+  const https = require('https');
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const tagName = `backup-${timestamp}`;
+  const fileName = `rp-cms-backup-${label}-${timestamp}.db`;
+
+  // Helper for GitHub API calls
+  function ghApi(method, endpoint, body) {
+    return new Promise((resolve, reject) => {
+      const data = body ? JSON.stringify(body) : null;
+      const req = https.request({
+        hostname: 'api.github.com',
+        path: `/repos/${GITHUB_REPO}${endpoint}`,
+        method,
+        headers: {
+          'Authorization': `Bearer ${GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github+json',
+          'User-Agent': 'RP-CMS-Backup',
+          'X-GitHub-Api-Version': '2022-11-28',
+          ...(data ? { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) } : {})
+        }
+      }, res => {
+        let body = '';
+        res.on('data', c => body += c);
+        res.on('end', () => {
+          try { resolve({ status: res.statusCode, data: JSON.parse(body) }); }
+          catch(e) { resolve({ status: res.statusCode, data: body }); }
+        });
+      });
+      req.on('error', reject);
+      if (data) req.write(data);
+      req.end();
+    });
+  }
+
+  // Helper for uploading binary to GitHub release
+  function ghUpload(uploadUrl, fileBuffer, fileName) {
+    const url = new URL(uploadUrl.replace('{?name,label}', `?name=${encodeURIComponent(fileName)}`));
+    return new Promise((resolve, reject) => {
+      const req = https.request({
+        hostname: url.hostname,
+        path: url.pathname + url.search,
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github+json',
+          'User-Agent': 'RP-CMS-Backup',
+          'Content-Type': 'application/octet-stream',
+          'Content-Length': fileBuffer.length
+        }
+      }, res => {
+        let body = '';
+        res.on('data', c => body += c);
+        res.on('end', () => resolve({ status: res.statusCode }));
+      });
+      req.on('error', reject);
+      req.write(fileBuffer);
+      req.end();
+    });
+  }
+
+  try {
+    // Create a release
+    const release = await ghApi('POST', '/releases', {
+      tag_name: tagName,
+      name: `DB Backup — ${label} — ${new Date().toISOString().slice(0,10)}`,
+      body: `Automatic database backup (${label}). Download the .db file to restore.`,
+      prerelease: true
+    });
+
+    if (release.status !== 201 || !release.data.upload_url) {
+      console.error('  GitHub backup: failed to create release', release.status);
+      return;
+    }
+
+    // Upload the DB file as release asset
+    const fileBuffer = fs.readFileSync(DB_PATH);
+    const upload = await ghUpload(release.data.upload_url, fileBuffer, fileName);
+
+    if (upload.status === 201) {
+      console.log(`  GitHub backup uploaded: ${tagName} (${(fileBuffer.length / 1024).toFixed(0)} KB)`);
+    } else {
+      console.error('  GitHub backup: upload failed', upload.status);
+    }
+  } catch(e) {
+    console.error('  GitHub backup failed:', e.message);
+  }
 }
 
 // Admin: download live database backup
 app.get('/api/backup/download', requireRole('admin'), (req, res) => {
-  try {
-    if (db) db.pragma('wal_checkpoint(TRUNCATE)');
-  } catch(e) {}
+  try { if (db) db.pragma('wal_checkpoint(TRUNCATE)'); } catch(e) {}
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
   res.setHeader('Content-Disposition', `attachment; filename="rp-cms-backup-${timestamp}.db"`);
   res.setHeader('Content-Type', 'application/x-sqlite3');
-  const stream = fs.createReadStream(DB_PATH);
-  stream.pipe(res);
+  fs.createReadStream(DB_PATH).pipe(res);
 });
 
-// Admin: trigger manual backup (saved on server)
-app.post('/api/backup/create', requireRole('admin'), (req, res) => {
+// Admin: trigger manual backup (saved on server + pushed to GitHub)
+app.post('/api/backup/create', requireRole('admin'), async (req, res) => {
   const filename = createBackup('manual');
   if (filename) {
-    res.json({ success: true, filename, message: 'Backup created on server' });
+    // Also push to GitHub in background
+    pushBackupToGitHub('manual').catch(() => {});
+    res.json({ success: true, filename, github: !!GITHUB_TOKEN });
   } else {
     res.status(500).json({ error: 'Backup failed — database file not found' });
   }
@@ -1177,7 +1345,7 @@ app.get('/api/backup/list', requireRole('admin'), (req, res) => {
       return { filename: f, size: stat.size, created: stat.mtime.toISOString() };
     })
     .sort((a, b) => b.created.localeCompare(a.created));
-  res.json(backups);
+  res.json({ backups, githubEnabled: !!GITHUB_TOKEN });
 });
 
 // Admin: download a specific server-side backup
@@ -1190,6 +1358,21 @@ app.get('/api/backup/download/:filename', requireRole('admin'), (req, res) => {
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.setHeader('Content-Type', 'application/x-sqlite3');
   fs.createReadStream(filePath).pipe(res);
+});
+
+// Admin: check backup system status
+app.get('/api/backup/status', requireRole('admin'), (req, res) => {
+  ensureBackupDir();
+  const files = fs.readdirSync(BACKUP_DIR).filter(f => f.startsWith('backup_') && f.endsWith('.db'));
+  const totalSize = files.reduce((sum, f) => sum + fs.statSync(path.join(BACKUP_DIR, f)).size, 0);
+  const newest = files.length > 0 ? fs.statSync(path.join(BACKUP_DIR, files.sort().reverse()[0])).mtime.toISOString() : null;
+  res.json({
+    totalBackups: files.length,
+    totalSizeMB: (totalSize / (1024 * 1024)).toFixed(1),
+    lastBackup: newest,
+    githubEnabled: !!GITHUB_TOKEN,
+    volumePath: BACKUP_DIR
+  });
 });
 
 // ==================== SERVE PAGES ====================
@@ -1207,18 +1390,30 @@ async function start() {
   // Safety backup on every startup (before app serves any requests)
   try {
     createBackup('startup');
-    console.log('  Startup safety backup created.');
+    console.log('  Startup safety backup created on persistent volume.');
   } catch(e) { console.error('Startup backup failed:', e.message); }
 
-  // Scheduled auto-backup every 6 hours
+  // Push backup to GitHub on every deploy (off-site protection)
+  if (GITHUB_TOKEN) {
+    pushBackupToGitHub('deploy').then(() => {
+      console.log('  Off-site backup pushed to GitHub.');
+    }).catch(e => console.error('  GitHub backup failed:', e.message));
+  }
+
+  // Scheduled auto-backup every 6 hours (local + GitHub)
   setInterval(() => {
-    try { createBackup('auto'); } catch(e) { console.error('Auto backup failed:', e.message); }
+    try {
+      createBackup('auto');
+      if (GITHUB_TOKEN) pushBackupToGitHub('auto').catch(() => {});
+    } catch(e) { console.error('Auto backup failed:', e.message); }
   }, 6 * 60 * 60 * 1000);
 
   app.listen(PORT, () => {
     console.log(`\n  RP Immigration Consulting - Filing Operations Toolkit`);
     console.log(`  Server running at http://localhost:${PORT}`);
-    console.log(`  Auto-backup: every 6 hours, all backups kept forever on persistent volume`);
+    console.log(`  Backup: local (persistent volume) + ${GITHUB_TOKEN ? 'GitHub (off-site)' : 'GitHub NOT configured (set GITHUB_TOKEN)'}`);
+    console.log(`  Schedule: every 6 hours + every deploy/restart`);
+    console.log(`  Rotation: 7 daily, 4 weekly, monthly forever`);
     console.log(`\n  Staff login:     http://localhost:${PORT}/staff`);
     console.log(`  Default login:   admin / admin123\n`);
   });
